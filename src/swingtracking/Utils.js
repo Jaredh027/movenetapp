@@ -9,8 +9,8 @@ const getSwingMidPointY = (leftHip, rightHip) => {
   return getCenterOfTwoPoints(leftHip.y, rightHip.y);
 };
 
-const getHighestPointsInSwingIndexes = (prerecordedKeypoints) => {
-  let highestPointInSwing = [0, 0]; // [endofbackswing, endofswing]
+export const getHighestPointInBackSwingIndex = (prerecordedKeypoints) => {
+  let highestPointInSwing = 0; // endofbackswing
   prerecordedKeypoints.forEach((frame, frameIndex) => {
     const frameKeypoints = frame[0];
     if (frameKeypoints[9] && frameKeypoints[5] && frameKeypoints[6]) {
@@ -18,22 +18,16 @@ const getHighestPointsInSwingIndexes = (prerecordedKeypoints) => {
       //setting end of backswing point
       if (
         centerX - frameKeypoints[9].x > 0 &&
-        highestPointInSwing[0] < frameKeypoints[9].y
+        highestPointInSwing < frameKeypoints[9].y
       ) {
-        highestPointInSwing[0] = frameIndex;
-        //setting end of swing point
-      } else if (
-        centerX - frameKeypoints[9].x < 0 &&
-        highestPointInSwing[1] < frameKeypoints[9].y
-      ) {
-        highestPointInSwing[1] = frameIndex;
+        highestPointInSwing = frameIndex;
       }
     }
   });
   return highestPointInSwing;
 };
 
-const calculateNormalizedDistance = (keypoints1, keypoints2) => {
+export const calculateNormalizedDistance = (keypoints1, keypoints2) => {
   if (!keypoints2 || keypoints2.length === 0) {
     // console.warn("Keypoints data is missing for comparison.");
     return Infinity; // Return a large value to indicate poor match
@@ -78,7 +72,7 @@ const calculateNormalizedDistance = (keypoints1, keypoints2) => {
     centerX2 - leftHand2.x < 0 &&
     centerY2 - leftHand2.y > 0
   ) {
-    console.log("top rigth");
+    // console.log("top rigth");
     return Math.sqrt(
       Math.pow(centerX - leftHand.x - (centerX2 - leftHand2.x), 2) +
         Math.pow(centerY - leftHand.y - (centerY2 - leftHand2.y), 2)
@@ -90,7 +84,7 @@ const calculateNormalizedDistance = (keypoints1, keypoints2) => {
     centerX2 - leftHand2.x < 0 &&
     centerY2 - leftHand2.y < 0
   ) {
-    console.log("bottom right");
+    // console.log("bottom right");
     return Math.sqrt(
       Math.pow(centerX - leftHand.x - (centerX2 - leftHand2.x), 2) +
         Math.pow(centerY - leftHand.y - (centerY2 - leftHand2.y), 2)
@@ -102,7 +96,7 @@ const calculateNormalizedDistance = (keypoints1, keypoints2) => {
     centerX2 - leftHand2.x > 0 &&
     centerY2 - leftHand2.y < 0
   ) {
-    console.log("bottom left");
+    // console.log("bottom left");
     return Math.sqrt(
       Math.pow(centerX - leftHand.x - (centerX2 - leftHand2.x), 2) +
         Math.pow(centerY - leftHand.y - (centerY2 - leftHand2.y), 2)
@@ -114,7 +108,7 @@ const calculateNormalizedDistance = (keypoints1, keypoints2) => {
     centerX2 - leftHand2.x > 0 &&
     centerY2 - leftHand2.y > 0
   ) {
-    console.log("top left");
+    // console.log("top left");
     return Math.sqrt(
       Math.pow(centerX - leftHand.x - (centerX2 - leftHand2.x), 2) +
         Math.pow(centerY - leftHand.y - (centerY2 - leftHand2.y), 2)
@@ -122,5 +116,3 @@ const calculateNormalizedDistance = (keypoints1, keypoints2) => {
   }
   return Infinity;
 };
-
-export default calculateNormalizedDistance;

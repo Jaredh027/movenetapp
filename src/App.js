@@ -5,12 +5,15 @@ import * as tf from "@tensorflow/tfjs";
 import "@tensorflow/tfjs-backend-webgl";
 import VideoPoints from "./progolfvideo/VideoPoints";
 import SwingMatch from "./swingtracking/SwingMatch";
+import FindFramesHelper from "./displaykeypoints/FindFramesHelper";
+
+const CONSTANTS = require("./progolfvideo/CONSTANTS.js");
 
 function App() {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
-  const [keypointsData, setKeypointsData] = useState();
+  const [keypointsData, setKeypointsData] = useState([]); // Initialize as an empty array
   const [handKeypoints, setHandKeypoints] = useState([]);
 
   // Add a ref to keep track of the last update time
@@ -49,15 +52,14 @@ function App() {
       detectPose();
     };
 
+    // Set keypointsData from CONSTANTS
+    setKeypointsData(CONSTANTS.TIGERFRAMES);
+    console.log(CONSTANTS.TIGERFRAMES);
+
     runDetector();
   }, []);
 
   const extractHandKeypoints = (poses) => {
-    // Get the current time
-    // const currentTime = Date.now();
-
-    // Check if 100 milliseconds have passed since the last update
-    // if (currentTime - lastUpdateRef.current > 1000) {
     poses.forEach(({ keypoints }) => {
       // Indices for left wrist, elbow, and shoulder
       const leftHandIndices = [9, 5, 6, 11, 12]; // Adjust indices according to keypoint mapping
@@ -67,11 +69,7 @@ function App() {
 
       // Update the hand keypoints state
       setHandKeypoints(leftHandKeypoints);
-
-      // Update the last update time
-      // lastUpdateRef.current = currentTime;
     });
-    // }
   };
 
   const drawCanvas = (poses, video, videoWidth, videoHeight, canvas) => {
@@ -92,18 +90,6 @@ function App() {
       13: [15], // Left knee to left ankle
       14: [16], // Right knee to right ankle
     };
-
-    // let leftHand = poses[0];
-    // let leftShoulder = keypoints1[1];
-    // let rightShoulder = keypoints1[2];
-    // let leftHip = keypoints1[3];
-    // let rightHip = keypoints1[4];
-
-    // let leftHand2 = keypoints2[9];
-    // let leftShoulder2 = keypoints2[5];
-    // let rightShoulder2 = keypoints2[6];
-    // let leftHip2 = keypoints2[11];
-    // let rightHip2 = keypoints2[12];
 
     poses.forEach(({ keypoints }) => {
       for (let i = 0; i < keypoints.length; i++) {
@@ -126,7 +112,6 @@ function App() {
                 ctx.stroke();
               }
             });
-            // if()
           }
         }
       }
@@ -136,13 +121,8 @@ function App() {
   return (
     <div>
       <header style={{ textAlign: "center" }}>
-        {!keypointsData ? (
-          <VideoPoints onCaptureComplete={setKeypointsData} />
-        ) : (
-          <SwingMatch
-            handKeypoints={handKeypoints}
-            prerecordedKeypoints={keypointsData}
-          />
+        {keypointsData.length > 0 && (
+          <FindFramesHelper keypointsData={keypointsData} />
         )}
         <Webcam
           ref={webcamRef}

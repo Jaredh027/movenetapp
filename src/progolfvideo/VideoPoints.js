@@ -98,7 +98,7 @@ function VideoPoints({ onCaptureComplete }) {
       keypointsArray.some((arr) => arr.length > 0)
     ) {
       setKeypointsData((prevData) => [...prevData, keypointsArray]);
-      console.log("Saved keypoints data:", keypointsArray); // Debugging: Log saved keypoints
+      // console.log("Saved keypoints data:", keypointsArray); // Debugging: Log saved keypoints
     } else {
       console.warn("No keypoints detected for this frame."); // Debugging: Warn when no keypoints detected
     }

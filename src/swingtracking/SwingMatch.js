@@ -1,5 +1,8 @@
 import React, { useRef, useEffect } from "react";
-import calculateNormalizedDistance from "./Utils";
+import {
+  calculateNormalizedDistance,
+  getHighestPointInBackSwingIndex,
+} from "./Utils";
 
 function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
   const canvasRef = useRef(null);
@@ -19,6 +22,8 @@ function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
   const matchKeypoints = (currentKeypoints, prerecordedKeypoints) => {
     let bestMatchFrame = 0;
     let smallestDistance = Infinity;
+    let highestPointInBackSwing =
+      getHighestPointInBackSwingIndex(prerecordedKeypoints);
 
     prerecordedKeypoints.forEach((frame, frameIndex) => {
       const frameKeypoints = frame[0]; // Accessing the keypoints in the nested structure
@@ -26,12 +31,15 @@ function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
         currentKeypoints,
         frameKeypoints
       );
-      console.log(`Distance for frame ${frameIndex}:`, distance);
+      // console.log(`Distance for frame ${frameIndex}:`, distance);
       if (distance < smallestDistance) {
         smallestDistance = distance;
         bestMatchFrame = frameIndex;
       }
     });
+    if (highestPointInBackSwing) {
+      return highestPointInBackSwing;
+    }
     return bestMatchFrame;
   };
 
