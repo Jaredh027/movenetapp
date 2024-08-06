@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from "react";
+import calculateNormalizedDistance from "./Utils";
 
 function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
-  // console.log(handKeypoints);
   const canvasRef = useRef(null);
 
   useEffect(() => {
@@ -10,7 +10,6 @@ function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
         handKeypoints,
         prerecordedKeypoints
       );
-      // console.log("Best match frame:", bestMatchFrame);
 
       // Draw the matched frame's keypoints on the canvas
       drawMatchedFrame(bestMatchFrame);
@@ -20,12 +19,6 @@ function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
   const matchKeypoints = (currentKeypoints, prerecordedKeypoints) => {
     let bestMatchFrame = 0;
     let smallestDistance = Infinity;
-
-    // console.log("Current Keypoints:", currentKeypoints);
-    // console.log(
-    //   "Prerecorded Keypoints (total frames):",
-    //   prerecordedKeypoints.length
-    // );
 
     prerecordedKeypoints.forEach((frame, frameIndex) => {
       const frameKeypoints = frame[0]; // Accessing the keypoints in the nested structure
@@ -39,175 +32,7 @@ function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
         bestMatchFrame = frameIndex;
       }
     });
-
-    // console.log("Best Frame", bestMatchFrame);
-    // console.log("Smallest Distance", smallestDistance);
     return bestMatchFrame;
-  };
-
-  const calculateNormalizedDistance = (keypoints1, keypoints2) => {
-    if (!keypoints2 || keypoints2.length === 0) {
-      // console.warn("Keypoints data is missing for comparison.");
-      return Infinity; // Return a large value to indicate poor match
-    }
-
-    // const normalize = (keypoints, useNames = false) => {
-    //   const keypointsMap = keypoints.reduce((acc, kp, index) => {
-    //     const name = useNames ? kp.name : index;
-    //     acc[name] = kp;
-    //     return acc;
-    //   }, {});
-
-    //   const leftShoulder = keypointsMap["left_shoulder"] || keypointsMap[5];
-    //   const rightShoulder = keypointsMap["right_shoulder"] || keypointsMap[6];
-
-    //   if (!leftShoulder || !rightShoulder) {
-    //     // console.warn("Missing keypoints for shoulders. Data:", keypoints);
-    //     return keypoints.map((kp) => kp || { x: 0, y: 0, score: 0 });
-    //   }
-
-    //   const centerX = (leftShoulder.x + rightShoulder.x) / 2;
-    //   const centerY = (leftShoulder.y + rightShoulder.y) / 2;
-
-    //   const normKeypoints = keypoints.map((kp) => ({
-    //     x: (kp.x || 0) - centerX,
-    //     y: (kp.y || 0) - centerY,
-    //     score: kp.score || 0,
-    //   }));
-    //   return normKeypoints;
-    // };
-
-    // const norm1 = normalize(keypoints1, true);
-    // const norm2 = normalize(keypoints2);
-
-    let leftHand = keypoints1[0];
-    let leftShoulder = keypoints1[1];
-    let rightShoulder = keypoints1[2];
-    let leftHip = keypoints1[3];
-    let rightHip = keypoints1[4];
-
-    let leftHand2 = keypoints2[9];
-    let leftShoulder2 = keypoints2[5];
-    let rightShoulder2 = keypoints2[6];
-    let leftHip2 = keypoints2[11];
-    let rightHip2 = keypoints2[12];
-
-    if (!leftHand || !leftShoulder || !rightShoulder || !leftHip || !rightHip) {
-      return Infinity;
-    }
-    if (
-      !leftHand2 ||
-      !leftShoulder2 ||
-      !rightShoulder2 ||
-      !leftHip2 ||
-      !rightHip2
-    ) {
-      return Infinity;
-    }
-
-    let centerX = (leftShoulder.x + rightShoulder.x) / 2;
-    let centerX2 = (leftShoulder2.x + rightShoulder2.x) / 2;
-    let centerY = (leftHip.y + rightHip.y) / 2;
-    let centerY2 = (leftHip2.y + rightHip2.y) / 2;
-
-    // let distanceX = leftHand.x - middleOfShouldersX;
-    // let distanceX2 = leftHand2.x - middleOfShouldersX2;
-
-    // let distanceY = leftHand.y - middleOfShouldersY;
-    // let distanceY2 = leftHand2.y - middleOfShouldersY2;
-
-    let distanceFromCenterX = centerX - leftHand.x;
-    let distanceFromCenterY = centerY - leftHand.y;
-
-    // console.log("distanceFromCenterX", distanceFromCenterX);
-    // console.log("distanceFromCenterY", distanceFromCenterY);
-
-    if (
-      centerX - leftHand.x > 0 &&
-      centerY - leftHand.y > 0 &&
-      centerX2 - leftHand2.x < 0 &&
-      centerY2 - leftHand2.y > 0
-    ) {
-      console.log("top rigth");
-      return Math.sqrt(
-        Math.pow(centerX - leftHand.x - (centerX2 - leftHand2.x), 2) +
-          Math.pow(centerY - leftHand.y - (centerY2 - leftHand2.y), 2)
-      );
-    }
-    if (
-      centerX - leftHand.x > 0 &&
-      centerY - leftHand.y < 0 &&
-      centerX2 - leftHand2.x < 0 &&
-      centerY2 - leftHand2.y < 0
-    ) {
-      console.log("bottom right");
-      return Math.sqrt(
-        Math.pow(centerX - leftHand.x - (centerX2 - leftHand2.x), 2) +
-          Math.pow(centerY - leftHand.y - (centerY2 - leftHand2.y), 2)
-      );
-    }
-    if (
-      centerX - leftHand.x < 0 &&
-      centerY - leftHand.y < 0 &&
-      centerX2 - leftHand2.x > 0 &&
-      centerY2 - leftHand2.y < 0
-    ) {
-      console.log("bottom left");
-      return Math.sqrt(
-        Math.pow(centerX - leftHand.x - (centerX2 - leftHand2.x), 2) +
-          Math.pow(centerY - leftHand.y - (centerY2 - leftHand2.y), 2)
-      );
-    }
-    if (
-      centerX - leftHand.x < 0 &&
-      centerY - leftHand.y > 0 &&
-      centerX2 - leftHand2.x > 0 &&
-      centerY2 - leftHand2.y > 0
-    ) {
-      console.log("top left");
-      return Math.sqrt(
-        Math.pow(centerX - leftHand.x - (centerX2 - leftHand2.x), 2) +
-          Math.pow(centerY - leftHand.y - (centerY2 - leftHand2.y), 2)
-      );
-    }
-    return Infinity;
-
-    // if (distanceX < 0) {
-    //   distanceX = distanceX * -1;
-    // }
-    // if (distanceX2 < 0) {
-    //   distanceX2 = distanceX2 * -1;
-    // }
-    // if (distanceY < 0) {
-    //   distanceY = distanceY * -1;
-    // }
-    // if (distanceY2 < 0) {
-    //   distanceY2 = distanceY2 * -1;
-    // }
-    // let totalDistanceX = 0;
-    // let totalDistanceY = 0;
-    // if (distanceX - distanceX2 < 0) {
-    //   totalDistanceX = (distanceX - distanceX2) * -1;
-    // } else {
-    //   totalDistanceX = distanceX - distanceX2;
-    // }
-    // if (distanceY - distanceY2 < 0) {
-    //   totalDistanceY = (distanceY - distanceY2) * -1;
-    // } else {
-    //   totalDistanceY = distanceY - distanceY2;
-    // }
-
-    // return (totalDistanceX + totalDistanceY) / 2;
-
-    // return norm1.reduce((sum, kp1, index) => {
-    //   const kp2 = norm2[index];
-    //   if (kp1 && kp2) {
-    //     const dx = kp1.x - kp2.x;
-    //     const dy = kp1.y - kp2.y;
-    //     return sum + Math.sqrt(dx * dx + dy * dy);
-    //   }
-    //   return sum; // Return the accumulated sum if kp1 or kp2 is undefined
-    // }, 0);
   };
 
   const drawMatchedFrame = (frameIndex) => {

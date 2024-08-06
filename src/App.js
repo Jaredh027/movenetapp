@@ -93,6 +93,18 @@ function App() {
       14: [16], // Right knee to right ankle
     };
 
+    // let leftHand = poses[0];
+    // let leftShoulder = keypoints1[1];
+    // let rightShoulder = keypoints1[2];
+    // let leftHip = keypoints1[3];
+    // let rightHip = keypoints1[4];
+
+    // let leftHand2 = keypoints2[9];
+    // let leftShoulder2 = keypoints2[5];
+    // let rightShoulder2 = keypoints2[6];
+    // let leftHip2 = keypoints2[11];
+    // let rightHip2 = keypoints2[12];
+
     poses.forEach(({ keypoints }) => {
       for (let i = 0; i < keypoints.length; i++) {
         const kp = keypoints[i];
@@ -114,6 +126,7 @@ function App() {
                 ctx.stroke();
               }
             });
+            // if()
           }
         }
       }
