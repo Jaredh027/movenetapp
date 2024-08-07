@@ -1,4 +1,4 @@
-const TIGERFRAMES = [
+export const TIGERFRAMES = [
   [
     [
       {
@@ -20915,6 +20915,5 @@ const TIGERFRAMES = [
     ],
   ],
 ];
-const TIGER_TOP_OF_BACKSWING_FRAME = 90;
-const TIGER_AT_IMPACT_FRAME = 121;
-exports.TIGERFRAMES = TIGERFRAMES;
+export const TIGER_TOP_OF_BACKSWING_FRAME = 90;
+export const TIGER_AT_IMPACT_FRAME = 121;

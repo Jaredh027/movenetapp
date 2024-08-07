@@ -6,8 +6,9 @@ import "@tensorflow/tfjs-backend-webgl";
 import VideoPoints from "./progolfvideo/VideoPoints";
 import SwingMatch from "./swingtracking/SwingMatch";
 import FindFramesHelper from "./displaykeypoints/FindFramesHelper";
+import zIndex from "@mui/material/styles/zIndex.js";
 
-const CONSTANTS = require("./progolfvideo/CONSTANTS.js");
+import { TIGERFRAMES } from "./progolfvideo/CONSTANTS";
 
 function App() {
   const webcamRef = useRef(null);
@@ -53,8 +54,8 @@ function App() {
     };
 
     // Set keypointsData from CONSTANTS
-    setKeypointsData(CONSTANTS.TIGERFRAMES);
-    console.log(CONSTANTS.TIGERFRAMES);
+    setKeypointsData(TIGERFRAMES);
+    console.log(TIGERFRAMES);
 
     runDetector();
   }, []);
@@ -122,6 +123,10 @@ function App() {
     <div>
       <header style={{ textAlign: "center" }}>
         {keypointsData.length > 0 && (
+          // <SwingMatch
+          //   handKeypoints={handKeypoints}
+          //   prerecordedKeypoints={keypointsData}
+          // />
           <FindFramesHelper keypointsData={keypointsData} />
         )}
         <Webcam

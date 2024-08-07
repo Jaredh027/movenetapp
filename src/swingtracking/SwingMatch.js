@@ -1,11 +1,32 @@
-import React, { useRef, useEffect } from "react";
+import React, { useRef, useEffect, useState } from "react";
+import { styled } from "@mui/material/styles";
+import { Box } from "@mui/material";
 import {
   calculateNormalizedDistance,
   getHighestPointInBackSwingIndex,
+  drawMatchedFrame,
 } from "./Utils";
+
+import {
+  TIGERFRAMES,
+  TIGER_TOP_OF_BACKSWING_FRAME,
+  TIGER_AT_IMPACT_FRAME,
+} from "../progolfvideo/CONSTANTS";
+
+const CompletedSection = styled("p")({
+  color: "green",
+});
 
 function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
   const canvasRef = useRef(null);
+  const matchCanvasRef = useRef(null);
+  const backSwingEndFrame = TIGER_TOP_OF_BACKSWING_FRAME;
+  const impactOfBallFrame = TIGER_AT_IMPACT_FRAME;
+  const swingStageArr = [backSwingEndFrame, impactOfBallFrame];
+  const [swingStageString, setSwingStageString] = useState("back_swing");
+
+  const [lastSwingFrame, setLastSwingFrame] = useState(prerecordedKeypoints[0]);
+  const [swingStage, setSwingStage] = useState([0, swingStageArr[0]]);
 
   useEffect(() => {
     if (handKeypoints.length > 0 && prerecordedKeypoints.length > 0) {
@@ -15,104 +36,132 @@ function SwingMatch({ handKeypoints, prerecordedKeypoints }) {
       );
 
       // Draw the matched frame's keypoints on the canvas
-      drawMatchedFrame(bestMatchFrame);
+      // console.log(bestMatchFrame);
+      if (prerecordedKeypoints.includes(bestMatchFrame)) {
+        setLastSwingFrame(bestMatchFrame); // Only update if frame is valid
+      }
+
+      drawMatchedFrame(bestMatchFrame, canvasRef, "green", "yellow");
+      drawMatchedFrame(
+        prerecordedKeypoints[swingStage[1]],
+        matchCanvasRef,
+        "gray",
+        "white"
+      );
+      // console.log(swingStageString);
     }
   }, [handKeypoints, prerecordedKeypoints]);
 
   const matchKeypoints = (currentKeypoints, prerecordedKeypoints) => {
-    let bestMatchFrame = 0;
+    let bestMatchFrame = prerecordedKeypoints[swingStage[0]];
     let smallestDistance = Infinity;
-    let highestPointInBackSwing =
-      getHighestPointInBackSwingIndex(prerecordedKeypoints);
 
-    prerecordedKeypoints.forEach((frame, frameIndex) => {
+    let sectionOfPrerecordedKeyPoints = prerecordedKeypoints.slice(
+      swingStage[0],
+      swingStage[1]
+    );
+
+    const lastFrameIndex = prerecordedKeypoints.indexOf(lastSwingFrame);
+    if (lastFrameIndex < 0) {
+      console.error("Last swing frame not found");
+      return bestMatchFrame; // Fallback to a safe frame
+    }
+
+    let smallerRangeOfPrerecordedKeyPoints =
+      sectionOfPrerecordedKeyPoints.slice(lastFrameIndex, lastFrameIndex + 5);
+
+    smallerRangeOfPrerecordedKeyPoints.forEach((frame) => {
       const frameKeypoints = frame[0]; // Accessing the keypoints in the nested structure
       const distance = calculateNormalizedDistance(
         currentKeypoints,
-        frameKeypoints
+        frameKeypoints,
+        swingStageString
       );
-      // console.log(`Distance for frame ${frameIndex}:`, distance);
+
       if (distance < smallestDistance) {
         smallestDistance = distance;
-        bestMatchFrame = frameIndex;
+        bestMatchFrame = frame;
       }
     });
-    if (highestPointInBackSwing) {
-      return highestPointInBackSwing;
+
+    const bestMatchIndex =
+      sectionOfPrerecordedKeyPoints.indexOf(bestMatchFrame);
+    if (
+      bestMatchIndex >= swingStage[1] - 2 &&
+      swingStage[1] !== prerecordedKeypoints.length
+    ) {
+      console.log(
+        "new goal",
+        swingStageArr[swingStageArr.indexOf(swingStage[1]) + 1]
+      );
+      setSwingStage((oldSwingStage) => [
+        oldSwingStage[1],
+        swingStageArr[swingStageArr.indexOf(oldSwingStage[1]) + 1],
+      ]);
+      if (swingStageString === "back_swing") {
+        setSwingStageString("ball_strike");
+      }
     }
+
     return bestMatchFrame;
   };
 
-  const drawMatchedFrame = (frameIndex) => {
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    const videoWidth = canvas.width;
-    const videoHeight = canvas.height;
-
-    ctx.clearRect(0, 0, videoWidth, videoHeight);
-
-    if (frameIndex >= prerecordedKeypoints.length) {
-      // console.warn("Frame index out of bounds");
-      return;
-    }
-
-    const frameKeypoints = prerecordedKeypoints[frameIndex][0] || [];
-
-    frameKeypoints.forEach(({ x, y, score }, index) => {
-      if (score > 0.3) {
-        const originalVideoWidth = 1920; // Example dimensions, adjust as needed
-        const originalVideoHeight = 1080;
-
-        // Scale keypoints to fit the canvas
-        const scaledX = (x / originalVideoWidth) * videoWidth;
-        const scaledY = (y / originalVideoHeight) * videoHeight;
-
-        ctx.beginPath();
-        ctx.arc(scaledX, scaledY, 5, 0, 2 * Math.PI);
-        ctx.fillStyle = "red";
-        ctx.fill();
-
-        const connections = {
-          5: [6, 7, 11], // Left shoulder to right shoulder, left elbow, left hip
-          6: [8, 12], // Right shoulder to right elbow, right hip
-          7: [9], // Left elbow to left wrist
-          8: [10], // Right elbow to right wrist
-          11: [12, 13], // Left hip to right hip, left knee
-          12: [14], // Right hip to right knee
-          13: [15], // Left knee to left ankle
-          14: [16], // Right knee to right ankle
-        };
-
-        if (connections[index]) {
-          connections[index].forEach((j) => {
-            const kp2 = frameKeypoints[j];
-            if (kp2 && kp2.score > 0.3) {
-              const scaledX2 = (kp2.x / originalVideoWidth) * videoWidth;
-              const scaledY2 = (kp2.y / originalVideoHeight) * videoHeight;
-              ctx.beginPath();
-              ctx.moveTo(scaledX, scaledY);
-              ctx.lineTo(scaledX2, scaledY2);
-              ctx.strokeStyle = "lime";
-              ctx.lineWidth = 2;
-              ctx.stroke();
-            }
-          });
-        }
-      }
-    });
-  };
-
   return (
-    <canvas
-      ref={canvasRef}
-      width={640} // Set to the desired canvas width
-      height={480} // Set to the desired canvas height
-      style={{
-        border: "1px solid black", // Optional border for visibility
-        display: "block",
-        margin: "auto",
-      }}
-    />
+    <>
+      <Box
+        sx={{
+          color: swingStageString === "ball_strike" ? "green" : "black",
+        }}
+      >
+        Back Swing
+      </Box>
+      <p
+        sx={{
+          color:
+            swingStageString !== "ball_strike" &&
+            swingStageString !== "back_swing"
+              ? "green"
+              : "black",
+        }}
+      >
+        Ballstrike
+      </p>
+      <p>Finished Swing</p>
+      <canvas
+        ref={canvasRef}
+        width={1280} // Set to the desired canvas width
+        height={720} // Set to the desired canvas height
+        style={{
+          border: "1px solid black", // Optional border for visibility
+          display: "block",
+          margin: "auto",
+          position: "absolute",
+          zIndex: 11,
+          marginLeft: "auto",
+          marginRight: "auto",
+          left: 0,
+          right: 0,
+          textAlign: "center",
+        }}
+      />
+      <canvas
+        ref={matchCanvasRef}
+        width={1280} // Set to the desired canvas width
+        height={720} // Set to the desired canvas height
+        style={{
+          border: "1px solid black", // Optional border for visibility
+          display: "block",
+          margin: "auto",
+          position: "absolute",
+          zIndex: 10,
+          marginLeft: "auto",
+          marginRight: "auto",
+          left: 0,
+          right: 0,
+          textAlign: "center",
+        }}
+      />
+    </>
   );
 }
 
