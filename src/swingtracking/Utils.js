@@ -181,6 +181,8 @@ export const calculateNormalizedDistance = (
   return Infinity;
 };
 
+// const swingStageToMatch = (frame) => {};
+
 export const drawMatchedFrame = (
   frameToDraw,
   canvasRef,
@@ -213,7 +215,7 @@ export const drawMatchedFrame = (
     6: [8], // Right shoulder to right elbow
     8: [10], // Right elbow to right wrist
   };
-
+  // console.log(frameKeypoints);
   // Draw body lines first (excluding arms)
   frameKeypoints.forEach(({ x, y, score }, index) => {
     if (score > 0.3) {
@@ -289,3 +291,55 @@ export const drawMatchedFrame = (
 };
 
 // const swingStageToMatch = (frame) => {};
+
+export const drawCanvasFromLiveVideo = (
+  poses,
+  video,
+  videoWidth,
+  videoHeight,
+  canvas
+) => {
+  const ctx = canvas.current.getContext("2d");
+  ctx.clearRect(0, 0, videoWidth, videoHeight);
+  ctx.drawImage(video, 0, 0, videoWidth, videoHeight);
+
+  const keypointConnections = {
+    0: [1, 2], // Nose to left eye and right eye
+    1: [3], // Left eye to left ear
+    2: [4], // Right eye to right ear
+    5: [6, 7, 11], // Left shoulder to right shoulder, left elbow, left hip
+    6: [8, 12], // Right shoulder to right elbow, right hip
+    7: [9], // Left elbow to left wrist
+    8: [10], // Right elbow to right wrist
+    11: [12, 13], // Left hip to right hip, left knee
+    12: [14], // Right hip to right knee
+    13: [15], // Left knee to left ankle
+    14: [16], // Right knee to right ankle
+  };
+
+  poses.forEach(({ keypoints }) => {
+    for (let i = 0; i < keypoints.length; i++) {
+      const kp = keypoints[i];
+      if (kp.score > 0.3) {
+        ctx.beginPath();
+        ctx.arc(kp.x, kp.y, 5, 0, 2 * Math.PI);
+        ctx.fillStyle = "blue";
+        ctx.fill();
+
+        if (keypointConnections[i]) {
+          keypointConnections[i].forEach((j) => {
+            const kp2 = keypoints[j];
+            if (kp2.score > 0.3) {
+              ctx.beginPath();
+              ctx.moveTo(kp.x, kp.y);
+              ctx.lineTo(kp2.x, kp2.y);
+              ctx.strokeStyle = "white";
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            }
+          });
+        }
+      }
+    }
+  });
+};
