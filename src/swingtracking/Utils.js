@@ -1,11 +1,17 @@
 const getCenterOfTwoPoints = (point1, point2) => {
   return (point1 + point2) / 2;
 };
-const getSwingMidPointX = (leftShoulder, rightShoulder) => {
+export const distanceToCenterOfSwingX = (leftShoulder, rightShoulder) => {
+  if (!leftShoulder || !rightShoulder) {
+    return null;
+  }
   return getCenterOfTwoPoints(leftShoulder.x, rightShoulder.x);
 };
 
-const getSwingMidPointY = (leftHip, rightHip) => {
+export const distanceToCenterOfSwingY = (leftHip, rightHip) => {
+  if (!leftHip || !rightHip) {
+    return null;
+  }
   return getCenterOfTwoPoints(leftHip.y, rightHip.y);
 };
 
@@ -20,7 +26,10 @@ export const getHighestPointInBackSwingIndex = (prerecordedKeypoints) => {
   prerecordedKeypoints.forEach((frame, frameIndex) => {
     const frameKeypoints = frame[0];
     if (frameKeypoints[9] && frameKeypoints[5] && frameKeypoints[6]) {
-      let centerX = getSwingMidPointX(frameKeypoints[5], frameKeypoints[6]);
+      let centerX = distanceToCenterOfSwingX(
+        frameKeypoints[5],
+        frameKeypoints[6]
+      );
       //setting end of backswing point
       if (
         centerX - frameKeypoints[9].x > 0 &&
@@ -342,4 +351,87 @@ export const drawCanvasFromLiveVideo = (
       }
     }
   });
+};
+
+// this is the number used to divide for points to get things to the same relative scale
+//even if the video resolution is good what if the user is not the same distance from the camera
+// this is why this approach is better I think
+export const getProportionalDistanceDivisor = (keypointsHolder) => {
+  let keypoints = keypointsHolder[0];
+  // console.log("keypoints", keypoints);
+  if (!keypoints[11] || !keypoints[11] || !keypoints[5] || !keypoints[6]) {
+    return null;
+  }
+
+  // I think these positions are least effected by a swing path
+
+  // for y proportion
+  let leftHip = keypoints[11];
+  let leftKnee = keypoints[13];
+
+  //for x proportion
+  let leftShoulder = keypoints[5];
+  let rightShoulder = keypoints[6];
+
+  let distanceFromJointsY = getDistanceBetweenTwoPoints(leftHip, leftKnee);
+
+  let distanceFromJointsX = getDistanceBetweenTwoPoints(
+    leftShoulder,
+    rightShoulder
+  );
+
+  let proportionsCoord = { x: distanceFromJointsX, y: distanceFromJointsY };
+  // console.log("proportionsCoord", proportionsCoord);
+
+  //problem this does not distinguish the x and y proportions may be different
+  //problem 2 hard to get consistent x measurement
+  //ahhh lets just get the info once right??
+
+  return proportionsCoord;
+};
+
+//lets get a percent output here
+export const compareSwingFrameKeypoints = (
+  keypoints1,
+  keypoints2,
+  proportionCoord1,
+  proportionCoord2,
+  offsetCoord1,
+  offsetCoord2
+) => {
+  let jointDistanceArr = [];
+  // lets do the output as an object with each joint having a percent match
+  // console.log("keypoints1", keypoints1);
+  // console.log("keypoints2", keypoints2);
+
+  keypoints1[0].forEach((joint1) => {
+    if (keypoints2[0][keypoints1[0].indexOf(joint1)]) {
+      let joint2 = keypoints2[0][keypoints1[0].indexOf(joint1)];
+
+      //lets get distance away from offset of joints
+      let distanceFromOffsetX1 = joint1.x - offsetCoord1.x;
+      let distanceFromOffsetY1 = joint1.y - offsetCoord1.y;
+
+      let distanceFromOffsetX2 = joint2.x - offsetCoord2.x;
+      let distanceFromOffsetY2 = joint2.y - offsetCoord2.y;
+
+      // console.log("distanceFromOffsetX1", distanceFromOffsetX1);
+
+      let proportionedX1 = distanceFromOffsetX1 / proportionCoord1.x;
+      let proportionedY1 = distanceFromOffsetY1 / proportionCoord1.y;
+
+      let proportionedX2 = distanceFromOffsetX2 / proportionCoord2.x;
+      let proportionedY2 = distanceFromOffsetY2 / proportionCoord2.y;
+
+      // console.log("proportionedX1", proportionedX1);
+
+      let distanceX = Math.sqrt(Math.pow(proportionedX1 - proportionedX2, 2));
+      let distanceY = Math.sqrt(Math.pow(proportionedY1 - proportionedY2, 2));
+
+      // console.log("distanceX", distanceX);
+
+      jointDistanceArr.push({ x: distanceX, y: distanceY });
+    }
+  });
+  return jointDistanceArr;
 };
