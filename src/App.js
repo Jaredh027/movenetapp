@@ -6,6 +6,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Home from "./home/Home";
 import SwingConsistency from "./screens/SwingConsistency";
 import CollectSwingVideo from "./screens/CollectSwingVideo";
+import ViewSwings from "./screens/ViewSwings";
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/consistency" element={<SwingConsistency />} />
         <Route path="/recordswing" element={<CollectSwingVideo />} />
+        <Route path="/uploadedswings" element={<ViewSwings />} />
       </Routes>
     </Router>
   );

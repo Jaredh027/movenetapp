@@ -62,11 +62,10 @@ const TimerText = (props) => (
 );
 
 const CollectSwingVideo = () => {
-  const [countdown, setCountdown] = useState(20);
+  const [countdown, setCountdown] = useState(10);
   const [countdownStarted, setCountdownStarted] = useState(false);
-  const [webKeypoints, setWebKeypoints] = useState([]);
-  const [recordedFrames, setRecordedFrames] = useState([]);
-
+  const isRecordingRef = useRef(false); // Use ref instead of state for recording flag
+  const recordedFramesRef = useRef([]);
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
 
@@ -75,12 +74,11 @@ const CollectSwingVideo = () => {
       await tf.ready();
       await tf.setBackend("webgl");
 
-      const detectorConfig = {
-        modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER, // More accurate model
-      };
       const detector = await poseDetection.createDetector(
         poseDetection.SupportedModels.MoveNet,
-        detectorConfig
+        {
+          modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
+        }
       );
 
       const detectPose = async () => {
@@ -101,11 +99,10 @@ const CollectSwingVideo = () => {
             videoHeight,
             canvasRef
           );
-          if (countdown <= 10 && countdown > 0) {
-            setRecordedFrames((prevFrames) => [...prevFrames, poses]);
-          }
-          if (countdown === 0) {
-            console.log(recordedFrames);
+
+          if (isRecordingRef.current) {
+            console.log("OMG ITS RECORDING");
+            recordedFramesRef.current.push([poses[0].keypoints]);
           }
         }
         requestAnimationFrame(detectPose);
@@ -115,33 +112,38 @@ const CollectSwingVideo = () => {
     };
 
     runDetector();
-  }, [countdown]);
+  }, []);
+
+  useEffect(() => {
+    if (countdownStarted && countdown > 0) {
+      const intervalId = setInterval(() => {
+        setCountdown((prevCountdown) => {
+          if (prevCountdown <= 1) {
+            clearInterval(intervalId);
+            isRecordingRef.current = true;
+            setCountdown("Start");
+
+            setTimeout(() => {
+              isRecordingRef.current = false;
+              setCountdown("Stop");
+              console.log("Recorded Frames:", recordedFramesRef.current);
+            }, 2000);
+          }
+          return prevCountdown - 1;
+        });
+      }, 1000);
+      return () => clearInterval(intervalId);
+    }
+  }, [countdownStarted, countdown]);
 
   const swingCountdown = () => {
     console.log("started");
     setCountdownStarted(true);
-    let intervalId = setInterval(() => {
-      setCountdown((prevCountdown) => {
-        if (prevCountdown <= 1) {
-          clearInterval(intervalId);
-          //send to capture webcam frames
-        }
-        return prevCountdown - 1;
-      });
-    }, 1000);
-    return () => clearInterval(intervalId);
-  };
-
-  const extractKeypoints = (poses) => {
-    poses.forEach(({ keypoints }) => {
-      console.log("keypoints", keypoints);
-    });
   };
 
   return (
     <Container>
       <RecordButton onClick={swingCountdown}>Start Recording</RecordButton>
-
       <Grid
         container
         style={{
@@ -156,7 +158,7 @@ const CollectSwingVideo = () => {
           ref={webcamRef}
           audio={false}
           style={{
-            transform: "scaleX(-1)", // Flip the webcam feed horizontally
+            transform: "scaleX(-1)",
             marginLeft: "auto",
             marginRight: "auto",
             left: 0,
@@ -174,7 +176,7 @@ const CollectSwingVideo = () => {
             position: "absolute",
             top: "50%",
             left: "50%",
-            transform: "translate(-50%, -50%) scaleX(-1)", // Flip the canvas horizontally
+            transform: "translate(-50%, -50%) scaleX(-1)",
             zIndex: 10,
           }}
         />

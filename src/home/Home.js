@@ -2,10 +2,11 @@ import React, { useRef, useEffect, useState } from "react";
 import WebcamRender from "../webcamfeed/WebcamRender";
 import { Grid, Button } from "@mui/material";
 import { styled } from "@mui/material/styles";
+import { useNavigate } from "react-router-dom";
 
 const WelcomeItem = (props) => (
   <Grid
-    props
+    {...props}
     sx={{
       textAlign: "center",
       display: "block",
@@ -19,7 +20,7 @@ const WelcomeItem = (props) => (
 
 const WelcomeButton = (props) => (
   <Button
-    props
+    {...props}
     sx={{
       textAlign: "center",
       borderRadius: 2,
@@ -39,6 +40,7 @@ const WelcomeButton = (props) => (
 );
 
 function Home() {
+  const navigate = useNavigate();
   return (
     <div
       style={{
@@ -57,7 +59,12 @@ function Home() {
         <Grid sx={{ marginTop: 5 }}>
           <WelcomeButton>Test your swing against the champs</WelcomeButton>
           <WelcomeButton>Check your consistency</WelcomeButton>
-          <WelcomeButton>Upload your swing</WelcomeButton>
+          <WelcomeButton onClick={() => navigate("/recordswing")}>
+            Upload your swing
+          </WelcomeButton>
+          <WelcomeButton onClick={() => navigate("/uploadedswings")}>
+            Look at Uploaded Swings
+          </WelcomeButton>
         </Grid>
       </WelcomeItem>
     </div>
