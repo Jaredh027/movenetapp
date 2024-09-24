@@ -4,9 +4,13 @@ import Webcam from "react-webcam";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs";
 import { drawCanvasFromLiveVideo } from "../swingtracking/Utils";
+import NavigationPanel from "../Components/NavigationPanel";
+import CustomButton from "../Components/CustomButton";
+import { ReactComponent as Video } from "../icons/video.svg";
 
 const RecordButton = (props) => (
-  <Button
+  <CustomButton
+    startIcon={<Video />}
     {...props}
     sx={{
       textAlign: "center",
@@ -16,13 +20,12 @@ const RecordButton = (props) => (
       display: "block",
       marginLeft: "auto",
       marginRight: "auto",
-      marginBottom: 2,
       padding: 2,
       fontWeight: "bold",
     }}
   >
     {props.children}
-  </Button>
+  </CustomButton>
 );
 
 const Container = (props) => (
@@ -34,8 +37,12 @@ const Container = (props) => (
       justifyContent: "center",
       color: "#34302D",
       alignItems: "center",
-      height: "100vh",
       flexDirection: "column",
+      marginRight: "20px",
+      marginTop: "20px",
+      backgroundColor: "#6699cc",
+      padding: "20px",
+      borderRadius: 2,
     }}
   >
     {props.children}
@@ -64,10 +71,14 @@ const TimerText = (props) => (
 const CollectSwingVideo = () => {
   const [countdown, setCountdown] = useState(10);
   const [countdownStarted, setCountdownStarted] = useState(false);
-  const isRecordingRef = useRef(false); // Use ref instead of state for recording flag
+  const isRecordingRef = useRef(false);
   const recordedFramesRef = useRef([]);
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
+  const [videoConstraints, setVideoConstraints] = useState({
+    width: 1280,
+    height: 720,
+  });
 
   useEffect(() => {
     const runDetector = async () => {
@@ -84,19 +95,20 @@ const CollectSwingVideo = () => {
       const detectPose = async () => {
         if (webcamRef.current && webcamRef.current.video.readyState === 4) {
           const video = webcamRef.current.video;
-          const videoWidth = video.videoWidth;
-          const videoHeight = video.videoHeight;
 
-          canvasRef.current.width = videoWidth;
-          canvasRef.current.height = videoHeight;
+          // Set canvas size to match video dimensions
+          if (canvasRef.current) {
+            canvasRef.current.width = video.videoWidth;
+            canvasRef.current.height = video.videoHeight;
+          }
 
+          // Estimate poses and draw them
           const poses = await detector.estimatePoses(video);
-
           drawCanvasFromLiveVideo(
             poses,
             video,
-            videoWidth,
-            videoHeight,
+            video.videoWidth,
+            video.videoHeight,
             canvasRef
           );
 
@@ -142,47 +154,61 @@ const CollectSwingVideo = () => {
   };
 
   return (
-    <Container>
-      <RecordButton onClick={swingCountdown}>Start Recording</RecordButton>
-      <Grid
-        container
-        style={{
-          position: "relative",
-          width: "100%",
-          height: "100%",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Webcam
-          ref={webcamRef}
-          audio={false}
-          style={{
-            transform: "scaleX(-1)",
-            marginLeft: "auto",
-            marginRight: "auto",
-            left: 0,
-            right: 0,
-            textAlign: "center",
-            zIndex: 5,
-            width: 1280,
-            height: 720,
-          }}
-          videoConstraints={{ width: 1280, height: 720 }}
-        />
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            transform: "translate(-50%, -50%) scaleX(-1)",
-            zIndex: 10,
-          }}
-        />
-        {countdownStarted && <TimerText>{countdown}</TimerText>}
+    <Grid container spacing={1}>
+      <Grid item xs={4}>
+        <NavigationPanel />
       </Grid>
-    </Container>
+      <Grid item xs={8}>
+        <Container>
+          <RecordButton onClick={swingCountdown}>Start Recording</RecordButton>
+          <Grid
+            container
+            style={{
+              position: "relative",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                paddingTop: "56.25%", // 16:9 Aspect Ratio
+                overflow: "hidden",
+              }}
+            >
+              <Webcam
+                ref={webcamRef}
+                audio={false}
+                style={{
+                  transform: "scaleX(-1)",
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover", // Ensures video covers the div
+                }}
+                videoConstraints={videoConstraints}
+              />
+              <canvas
+                ref={canvasRef}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: "100%",
+                  height: "100%",
+                  zIndex: 10,
+                  backgroundColor: "transparent", // Ensures background is transparent
+                }}
+              />
+            </div>
+            {countdownStarted && <TimerText>{countdown}</TimerText>}
+          </Grid>
+        </Container>
+      </Grid>
+    </Grid>
   );
 };
 

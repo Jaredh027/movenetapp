@@ -7,6 +7,7 @@ import Home from "./home/Home";
 import SwingConsistency from "./screens/SwingConsistency";
 import CollectSwingVideo from "./screens/CollectSwingVideo";
 import ViewSwings from "./screens/ViewSwings";
+import CameraSwitcher from "./screens/CameraSwitcher";
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/consistency" element={<SwingConsistency />} />
         <Route path="/recordswing" element={<CollectSwingVideo />} />
         <Route path="/uploadedswings" element={<ViewSwings />} />
+        <Route path="/switchcamera" element={<CameraSwitcher />} />
       </Routes>
     </Router>
   );
