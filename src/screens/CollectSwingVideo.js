@@ -7,6 +7,7 @@ import { drawCanvasFromLiveVideo } from "../swingtracking/Utils";
 import NavigationPanel from "../Components/NavigationPanel";
 import CustomButton from "../Components/CustomButton";
 import { ReactComponent as Video } from "../icons/video.svg";
+import axios from "axios";
 
 const RecordButton = (props) => (
   <CustomButton
@@ -80,6 +81,8 @@ const CollectSwingVideo = () => {
     height: 720,
   });
 
+  let swingData = [];
+
   useEffect(() => {
     const runDetector = async () => {
       await tf.ready();
@@ -113,7 +116,6 @@ const CollectSwingVideo = () => {
           );
 
           if (isRecordingRef.current) {
-            console.log("OMG ITS RECORDING");
             recordedFramesRef.current.push([poses[0].keypoints]);
           }
         }
@@ -139,6 +141,13 @@ const CollectSwingVideo = () => {
               isRecordingRef.current = false;
               setCountdown("Stop");
               console.log("Recorded Frames:", recordedFramesRef.current);
+
+              // Here is where I will be posting the data to the db
+              swingData = {
+                swing_name: "Test Swing",
+                frames: recordedFramesRef.current,
+              };
+              sendSwingData();
             }, 2000);
           }
           return prevCountdown - 1;
@@ -153,12 +162,24 @@ const CollectSwingVideo = () => {
     setCountdownStarted(true);
   };
 
+  const sendSwingData = async () => {
+    try {
+      const response = await axios.post(
+        "http://127.0.0.1:5001/api/swing-data",
+        swingData
+      );
+      console.log("Response from server:", response.data);
+    } catch (error) {
+      console.error("Error sending swing data:", error);
+    }
+  };
+
   return (
     <Grid container spacing={1}>
-      <Grid item xs={4}>
+      <Grid item xs={3}>
         <NavigationPanel />
       </Grid>
-      <Grid item xs={8}>
+      <Grid item xs={9}>
         <Container>
           <RecordButton onClick={swingCountdown}>Start Recording</RecordButton>
           <Grid
