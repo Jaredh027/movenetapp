@@ -1,14 +1,15 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Button, Grid } from "@mui/material";
-import Webcam from "react-webcam";
+import { Grid } from "@mui/material";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs";
 import { drawCanvasFromLiveVideo } from "../swingtracking/Utils";
 import NavigationPanel from "../Components/NavigationPanel";
 import CustomButton from "../Components/CustomButton";
 import { ReactComponent as Video } from "../icons/video.svg";
-import axios from "axios";
+import { sendSwingData } from "../backendCalls/BackendCalls";
+import CameraSwitcher from "./CameraSwitcher";
 
+// Custom RecordButton component
 const RecordButton = (props) => (
   <CustomButton
     startIcon={<Video />}
@@ -29,6 +30,7 @@ const RecordButton = (props) => (
   </CustomButton>
 );
 
+// Custom Container component
 const Container = (props) => (
   <Grid
     {...props}
@@ -50,6 +52,7 @@ const Container = (props) => (
   </Grid>
 );
 
+// Timer display for countdown
 const TimerText = (props) => (
   <p
     {...props}
@@ -70,23 +73,23 @@ const TimerText = (props) => (
 );
 
 const CollectSwingVideo = () => {
-  const [countdown, setCountdown] = useState(10);
-  const [countdownStarted, setCountdownStarted] = useState(false);
-  const isRecordingRef = useRef(false);
-  const recordedFramesRef = useRef([]);
-  const webcamRef = useRef(null);
-  const canvasRef = useRef(null);
+  const webcamRef = useRef(null); // Video reference
+  const canvasRef = useRef(null); // Canvas reference for drawing poses
+  const [countdown, setCountdown] = useState(10); // Countdown timer
+  const [countdownStarted, setCountdownStarted] = useState(false); // Track if countdown started
+  const isRecordingRef = useRef(false); // To track recording state
+  const recordedFramesRef = useRef([]); // To store recorded pose frames
   const [videoConstraints, setVideoConstraints] = useState({
     width: 1280,
     height: 720,
   });
-
   let swingData = [];
 
+  // Pose detection and video processing logic
   useEffect(() => {
     const runDetector = async () => {
-      await tf.ready();
-      await tf.setBackend("webgl");
+      await tf.ready(); // Ensure TensorFlow.js is ready
+      await tf.setBackend("webgl"); // Set the backend to WebGL for performance
 
       const detector = await poseDetection.createDetector(
         poseDetection.SupportedModels.MoveNet,
@@ -96,30 +99,36 @@ const CollectSwingVideo = () => {
       );
 
       const detectPose = async () => {
-        if (webcamRef.current && webcamRef.current.video.readyState === 4) {
-          const video = webcamRef.current.video;
+        if (webcamRef.current && webcamRef.current.readyState === 4) {
+          const video = webcamRef.current;
 
-          // Set canvas size to match video dimensions
-          if (canvasRef.current) {
-            canvasRef.current.width = video.videoWidth;
-            canvasRef.current.height = video.videoHeight;
-          }
+          // Ensure canvas and video maintain the correct aspect ratio (1280x720) and match
+          const videoWidth = video.videoWidth;
+          const videoHeight = video.videoHeight;
 
-          // Estimate poses and draw them
+          // Get canvas reference
+          const canvas = canvasRef.current;
+
+          // Set canvas dimensions to match the video dimensions
+          canvas.width = videoWidth; // Use the actual video dimensions
+          canvas.height = videoHeight;
+
+          // Estimate poses and draw them on the canvas
           const poses = await detector.estimatePoses(video);
           drawCanvasFromLiveVideo(
             poses,
             video,
-            video.videoWidth,
-            video.videoHeight,
+            canvas.width,
+            canvas.height,
             canvasRef
           );
 
+          // If recording, save pose keypoints
           if (isRecordingRef.current) {
             recordedFramesRef.current.push([poses[0].keypoints]);
           }
         }
-        requestAnimationFrame(detectPose);
+        requestAnimationFrame(detectPose); // Continue detection on each animation frame
       };
 
       detectPose();
@@ -128,50 +137,39 @@ const CollectSwingVideo = () => {
     runDetector();
   }, []);
 
+  // Countdown logic for recording
   useEffect(() => {
     if (countdownStarted && countdown > 0) {
       const intervalId = setInterval(() => {
         setCountdown((prevCountdown) => {
           if (prevCountdown <= 1) {
             clearInterval(intervalId);
-            isRecordingRef.current = true;
+            isRecordingRef.current = true; // Start recording poses
             setCountdown("Start");
 
             setTimeout(() => {
-              isRecordingRef.current = false;
+              isRecordingRef.current = false; // Stop recording
               setCountdown("Stop");
-              console.log("Recorded Frames:", recordedFramesRef.current);
 
-              // Here is where I will be posting the data to the db
+              // Prepare the swing data and send it to the backend
               swingData = {
                 swing_name: "Test Swing",
                 frames: recordedFramesRef.current,
               };
-              sendSwingData();
-            }, 2000);
+              sendSwingData(swingData); // Sending the recorded pose data to the backend
+            }, 2000); // Record for an additional 2 seconds after countdown ends
           }
           return prevCountdown - 1;
         });
-      }, 1000);
-      return () => clearInterval(intervalId);
+      }, 1000); // Decrease countdown every second
+      return () => clearInterval(intervalId); // Clean up the interval
     }
   }, [countdownStarted, countdown]);
 
+  // Function to start countdown
   const swingCountdown = () => {
     console.log("started");
     setCountdownStarted(true);
-  };
-
-  const sendSwingData = async () => {
-    try {
-      const response = await axios.post(
-        "http://127.0.0.1:5001/api/swing-data",
-        swingData
-      );
-      console.log("Response from server:", response.data);
-    } catch (error) {
-      console.error("Error sending swing data:", error);
-    }
   };
 
   return (
@@ -188,30 +186,34 @@ const CollectSwingVideo = () => {
               position: "relative",
               alignItems: "center",
               justifyContent: "center",
+              width: "100%",
+              maxWidth: "1280px", // Ensuring video and canvas stay within 1280px max
+              aspectRatio: "16 / 9", // Maintain 16:9 ratio
+              overflow: "hidden",
             }}
           >
             <div
               style={{
                 position: "relative",
                 width: "100%",
-                paddingTop: "56.25%", // 16:9 Aspect Ratio
+                height: "100%", // Explicit height to fill the parent
                 overflow: "hidden",
               }}
             >
-              <Webcam
+              {/* Pass ref to CameraSwitcher for video stream */}
+              <CameraSwitcher
                 ref={webcamRef}
-                audio={false}
                 style={{
-                  transform: "scaleX(-1)",
+                  transform: "scaleX(-1)", // Mirror video
                   position: "absolute",
                   top: 0,
                   left: 0,
                   width: "100%",
                   height: "100%",
-                  objectFit: "cover", // Ensures video covers the div
+                  objectFit: "cover", // Ensure video covers the div
                 }}
-                videoConstraints={videoConstraints}
               />
+              {/* Canvas for drawing poses */}
               <canvas
                 ref={canvasRef}
                 style={{
@@ -221,10 +223,11 @@ const CollectSwingVideo = () => {
                   width: "100%",
                   height: "100%",
                   zIndex: 10,
-                  backgroundColor: "transparent", // Ensures background is transparent
+                  backgroundColor: "transparent", // Transparent background
                 }}
               />
             </div>
+            {/* Display the countdown timer during recording */}
             {countdownStarted && <TimerText>{countdown}</TimerText>}
           </Grid>
         </Container>

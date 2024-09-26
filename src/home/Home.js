@@ -1,10 +1,6 @@
 import React from "react";
 import { Grid, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
-import { ReactComponent as Upload } from "../icons/upload.svg";
-import { ReactComponent as Check } from "../icons/check-square.svg";
-import { ReactComponent as Layers } from "../icons/layers.svg";
-import { ReactComponent as Search } from "../icons/search.svg";
 import { ReactComponent as Target } from "../icons/target.svg";
 import NavigationPanel from "../Components/NavigationPanel";
 
