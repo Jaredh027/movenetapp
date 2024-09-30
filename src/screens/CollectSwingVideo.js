@@ -1,5 +1,5 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Grid } from "@mui/material";
+import { Button, Grid, TextField } from "@mui/material";
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs";
 import { drawCanvasFromLiveVideo } from "../swingtracking/Utils";
@@ -8,6 +8,8 @@ import CustomButton from "../Components/CustomButton";
 import { ReactComponent as Video } from "../icons/video.svg";
 import { sendSwingData } from "../backendCalls/BackendCalls";
 import CameraSwitcher from "./CameraSwitcher";
+import { VideoDetector } from "../swingtracking/VideoDetector";
+import CustomPopover from "../Components/CustomPopover";
 
 // Custom RecordButton component
 const RecordButton = (props) => (
@@ -73,68 +75,22 @@ const TimerText = (props) => (
 );
 
 const CollectSwingVideo = () => {
-  const webcamRef = useRef(null); // Video reference
-  const canvasRef = useRef(null); // Canvas reference for drawing poses
-  const [countdown, setCountdown] = useState(10); // Countdown timer
-  const [countdownStarted, setCountdownStarted] = useState(false); // Track if countdown started
-  const isRecordingRef = useRef(false); // To track recording state
-  const recordedFramesRef = useRef([]); // To store recorded pose frames
-  const [videoConstraints, setVideoConstraints] = useState({
-    width: 1280,
-    height: 720,
-  });
-  let swingData = [];
+  const webcamRef = useRef(null);
+  const canvasRef = useRef(null);
+  const [countdown, setCountdown] = useState(3);
+  const [countdownStarted, setCountdownStarted] = useState(false);
+  const isRecordingRef = useRef(false);
+  const recordedFramesRef = useRef([]);
+  const [swingData, setSwingData] = React.useState(null);
+
+  // For popover
+  const [anchorEl, setAnchorEl] = React.useState(null);
+  const [isOpen, setIsOpen] = React.useState(false);
+  const [swingTitle, setSwingTitle] = React.useState("");
 
   // Pose detection and video processing logic
   useEffect(() => {
-    const runDetector = async () => {
-      await tf.ready(); // Ensure TensorFlow.js is ready
-      await tf.setBackend("webgl"); // Set the backend to WebGL for performance
-
-      const detector = await poseDetection.createDetector(
-        poseDetection.SupportedModels.MoveNet,
-        {
-          modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
-        }
-      );
-
-      const detectPose = async () => {
-        if (webcamRef.current && webcamRef.current.readyState === 4) {
-          const video = webcamRef.current;
-
-          // Ensure canvas and video maintain the correct aspect ratio (1280x720) and match
-          const videoWidth = video.videoWidth;
-          const videoHeight = video.videoHeight;
-
-          // Get canvas reference
-          const canvas = canvasRef.current;
-
-          // Set canvas dimensions to match the video dimensions
-          canvas.width = videoWidth; // Use the actual video dimensions
-          canvas.height = videoHeight;
-
-          // Estimate poses and draw them on the canvas
-          const poses = await detector.estimatePoses(video);
-          drawCanvasFromLiveVideo(
-            poses,
-            video,
-            canvas.width,
-            canvas.height,
-            canvasRef
-          );
-
-          // If recording, save pose keypoints
-          if (isRecordingRef.current) {
-            recordedFramesRef.current.push([poses[0].keypoints]);
-          }
-        }
-        requestAnimationFrame(detectPose); // Continue detection on each animation frame
-      };
-
-      detectPose();
-    };
-
-    runDetector();
+    VideoDetector(webcamRef, canvasRef, isRecordingRef, recordedFramesRef);
   }, []);
 
   // Countdown logic for recording
@@ -152,11 +108,12 @@ const CollectSwingVideo = () => {
               setCountdown("Stop");
 
               // Prepare the swing data and send it to the backend
-              swingData = {
-                swing_name: "Test Swing",
-                frames: recordedFramesRef.current,
-              };
-              sendSwingData(swingData); // Sending the recorded pose data to the backend
+              if (recordedFramesRef.current !== null) {
+                setSwingData({
+                  frames: recordedFramesRef.current,
+                });
+                setIsOpen(true);
+              }
             }, 2000); // Record for an additional 2 seconds after countdown ends
           }
           return prevCountdown - 1;
@@ -168,8 +125,28 @@ const CollectSwingVideo = () => {
 
   // Function to start countdown
   const swingCountdown = () => {
-    console.log("started");
     setCountdownStarted(true);
+  };
+
+  const handleClosePopover = () => {
+    setIsOpen(false);
+    setAnchorEl(null);
+  };
+
+  const saveSwingHandler = () => {
+    const updatedSwingData = {
+      swing_name: swingTitle,
+      ...swingData,
+    };
+
+    console.log(updatedSwingData);
+
+    sendSwingData(updatedSwingData);
+    handleClosePopover();
+  };
+
+  const handleInputChange = (event) => {
+    setSwingTitle(event.target.value);
   };
 
   return (
@@ -229,6 +206,25 @@ const CollectSwingVideo = () => {
             </div>
             {/* Display the countdown timer during recording */}
             {countdownStarted && <TimerText>{countdown}</TimerText>}
+            {isOpen && (
+              <CustomPopover
+                anchorEl={canvasRef.current}
+                open={isOpen}
+                popoverContent={
+                  <>
+                    <TextField
+                      id="outlined-basic"
+                      label="Swing Title"
+                      variant="outlined"
+                      value={swingTitle}
+                      onChange={handleInputChange}
+                    />
+                    <Button onClick={saveSwingHandler}>Save</Button>
+                  </>
+                }
+                handleClose={handleClosePopover}
+              />
+            )}
           </Grid>
         </Container>
       </Grid>

@@ -52,8 +52,8 @@ function FindFramesHelper({ keypointsData }) {
           keypoints.forEach(({ x, y, score }, index) => {
             if (score > 0.3) {
               // Adjust these values to your video dimensions
-              const originalVideoWidth = 1920; // Example: set this to your video's actual width
-              const originalVideoHeight = 1080; // Example: set this to your video's actual height
+              const originalVideoWidth = 1280; // Example: set this to your video's actual width
+              const originalVideoHeight = 720; // Example: set this to your video's actual height
 
               // Scale keypoints to fit the canvas
               const scaledX = (x / originalVideoWidth) * videoWidth;
@@ -118,8 +118,6 @@ function FindFramesHelper({ keypointsData }) {
       <p>{countDown}</p>
       <canvas
         ref={canvasRef}
-        width={1280} // Set canvas width
-        height={720} // Set canvas height
         style={{
           transform: "scaleX(-1)", // Flip the feed horizontally
           position: "relative",
@@ -130,6 +128,9 @@ function FindFramesHelper({ keypointsData }) {
           textAlign: "center",
           zIndex: 9,
           border: "1px solid black", // Optional: to visualize the canvas border
+          aspectRatio: "16 / 9",
+          maxWidth: "1280px",
+          width: "100%",
         }}
       />
     </>
