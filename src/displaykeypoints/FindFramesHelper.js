@@ -48,6 +48,22 @@ function FindFramesHelper({ keypointsData }) {
 
         const frameKeypoints = keypointsData[frameIndex];
 
+        const offCenterValueFromLeftAnkle = {
+          "x": -1 * ((frameKeypoints[0][15].x / 1280) * videoWidth - 150),
+          "y": -1 * ((frameKeypoints[0][15].y / 720) * videoHeight - 150),
+        };
+
+        console.log(
+          "left ankle",
+          (frameKeypoints[0][15].x / 1280) * videoWidth
+        );
+        console.log(
+          "eyes or nose",
+          (frameKeypoints[0][1].x / 1280) * videoWidth
+        );
+        console.log("Right Hip", (frameKeypoints[0][14].x / 1280) * videoWidth);
+        console.log(offCenterValueFromLeftAnkle.x);
+
         frameKeypoints.forEach((keypoints) => {
           keypoints.forEach(({ x, y, score }, index) => {
             if (score > 0.3) {
@@ -59,21 +75,32 @@ function FindFramesHelper({ keypointsData }) {
               const scaledX = (x / originalVideoWidth) * videoWidth;
               const scaledY = (y / originalVideoHeight) * videoHeight;
 
+              const centeredX = offCenterValueFromLeftAnkle.x + scaledX;
+              const centeredY = offCenterValueFromLeftAnkle.y + scaledY;
+
+              // Get the swing centered on the canvas
               ctx.beginPath();
-              ctx.arc(scaledX, scaledY, 5, 0, 2 * Math.PI);
+              ctx.arc(centeredX, centeredY, 5, 0, 2 * Math.PI);
+              ctx.arc(150, 150, 5, 0, 2 * Math.PI);
               ctx.fillStyle = "red";
               ctx.fill();
 
               if (keypointConnections[index]) {
                 keypointConnections[index].forEach((j) => {
                   const kp2 = keypoints[j];
+
                   if (kp2 && kp2.score > 0.3) {
                     const scaledX2 = (kp2.x / originalVideoWidth) * videoWidth;
                     const scaledY2 =
                       (kp2.y / originalVideoHeight) * videoHeight;
+
+                    const centeredKp2X =
+                      offCenterValueFromLeftAnkle.x + scaledX2;
+                    const centeredKp2Y =
+                      offCenterValueFromLeftAnkle.y + scaledY2;
                     ctx.beginPath();
-                    ctx.moveTo(scaledX, scaledY);
-                    ctx.lineTo(scaledX2, scaledY2);
+                    ctx.moveTo(centeredX, centeredY);
+                    ctx.lineTo(centeredKp2X, centeredKp2Y);
                     ctx.strokeStyle = "lime";
                     ctx.lineWidth = 2;
                     ctx.stroke();

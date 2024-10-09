@@ -5,6 +5,7 @@ import { ReactComponent as Upload } from "../icons/upload.svg";
 import { ReactComponent as Check } from "../icons/check-square.svg";
 import { ReactComponent as Layers } from "../icons/layers.svg";
 import CustomButton from "./CustomButton";
+import HeaderText from "./HeaderText";
 
 const WelcomeItem = (props) => (
   <Grid
@@ -35,9 +36,7 @@ function NavigationPanel() {
       }}
     >
       <WelcomeItem item>
-        <h2 style={{ marginTop: 0, color: "white" }}>
-          Welcome to the Swing Workshop
-        </h2>
+        <HeaderText>Welcome to the Swing Workshop</HeaderText>
         <h3 style={{ color: "#bddbe8" }}>Let's get dialed</h3>
         <Grid sx={{ marginTop: 5 }}>
           <CustomButton>Test your swing against the champs</CustomButton>

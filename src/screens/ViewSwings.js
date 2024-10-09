@@ -5,6 +5,7 @@ import { Grid } from "@mui/material";
 import NavigationPanel from "../Components/NavigationPanel";
 import { getAllSwings, getSwingData } from "../backendCalls/BackendCalls";
 import CustomButton from "../Components/CustomButton";
+import HeaderText from "../Components/HeaderText";
 
 const Container = (props) => (
   <Grid
@@ -60,7 +61,7 @@ const ViewSwings = () => {
         <Container>
           {swingArray.length > 0 ? (
             <>
-              <h2>Select a Swing to Analyze</h2>
+              <HeaderText>Select a Swing to Analyze</HeaderText>
               {swingArray.map((swing) => (
                 <CustomButton
                   key={swing.swing_id}
