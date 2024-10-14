@@ -1,26 +1,12 @@
 import React, { useRef, useEffect, useState } from "react";
+import Slider from "@mui/material/Slider";
 
 function FindFramesHelper({ keypointsData }) {
   //   console.log(keypointsData);
   const canvasRef = useRef(null);
-  const [countDown, setCountDown] = useState(3);
   const [currentFrame, setCurrentFrame] = useState(0); // State for current frame index
 
-  useEffect(() => {
-    // Countdown logic
-    const timer = setInterval(() => {
-      setCountDown((prevCountDown) => {
-        if (prevCountDown > 0) {
-          return prevCountDown - 1;
-        } else {
-          clearInterval(timer); // Clear the interval once countdown is complete
-          return 0;
-        }
-      });
-    }, 1000);
-
-    return () => clearInterval(timer); // Cleanup the interval on component unmount
-  }, []);
+  const [value, setValue] = React.useState(0);
 
   useEffect(() => {
     if (keypointsData.length > 0) {
@@ -49,27 +35,27 @@ function FindFramesHelper({ keypointsData }) {
         const frameKeypoints = keypointsData[frameIndex];
 
         const offCenterValueFromLeftAnkle = {
-          "x": -1 * ((frameKeypoints[0][15].x / 1280) * videoWidth - 150),
-          "y": -1 * ((frameKeypoints[0][15].y / 720) * videoHeight - 150),
+          "x": -1 * ((frameKeypoints[0][15].x / 800) * videoWidth - 150),
+          "y": -1 * ((frameKeypoints[0][15].y / 450) * videoHeight - 150),
         };
 
-        console.log(
-          "left ankle",
-          (frameKeypoints[0][15].x / 1280) * videoWidth
-        );
-        console.log(
-          "eyes or nose",
-          (frameKeypoints[0][1].x / 1280) * videoWidth
-        );
-        console.log("Right Hip", (frameKeypoints[0][14].x / 1280) * videoWidth);
-        console.log(offCenterValueFromLeftAnkle.x);
+        // console.log(
+        //   "left ankle",
+        //   (frameKeypoints[0][15].x / 1280) * videoWidth
+        // );
+        // console.log(
+        //   "eyes or nose",
+        //   (frameKeypoints[0][1].x / 1280) * videoWidth
+        // );
+        // console.log("Right Hip", (frameKeypoints[0][14].x / 1280) * videoWidth);
+        // console.log(offCenterValueFromLeftAnkle.x);
 
         frameKeypoints.forEach((keypoints) => {
           keypoints.forEach(({ x, y, score }, index) => {
             if (score > 0.3) {
               // Adjust these values to your video dimensions
-              const originalVideoWidth = 1280; // Example: set this to your video's actual width
-              const originalVideoHeight = 720; // Example: set this to your video's actual height
+              const originalVideoWidth = 800; // Example: set this to your video's actual width
+              const originalVideoHeight = 450; // Example: set this to your video's actual height
 
               // Scale keypoints to fit the canvas
               const scaledX = (x / originalVideoWidth) * videoWidth;
@@ -116,33 +102,43 @@ function FindFramesHelper({ keypointsData }) {
         drawKeypoints(currentFrame); // Draw the initial frame
       }
 
-      const handleKeyDown = (event) => {
-        if (countDown === 0) {
-          const frameCount = keypointsData.length;
-
-          if (event.key === "ArrowRight") {
-            setCurrentFrame((prevFrame) => (prevFrame + 1) % frameCount);
-          } else if (event.key === "ArrowLeft") {
-            setCurrentFrame((prevFrame) =>
-              prevFrame === 0 ? frameCount - 1 : prevFrame - 1
-            );
-          } else if (event.key === "Enter") {
-            console.log(`Current Frame Index: ${currentFrame}`);
-          }
-        }
-      };
-
       window.addEventListener("keydown", handleKeyDown);
 
       return () => {
         window.removeEventListener("keydown", handleKeyDown);
       };
     }
-  }, [countDown, keypointsData, currentFrame]);
+  }, [keypointsData, currentFrame]);
+
+  const handleKeyDown = (event) => {
+    const frameCount = keypointsData.length;
+
+    if (event.key === "ArrowRight") {
+      setCurrentFrame((prevFrame) => (prevFrame + 1) % frameCount);
+    } else if (event.key === "ArrowLeft") {
+      setCurrentFrame((prevFrame) =>
+        prevFrame === 0 ? frameCount - 1 : prevFrame - 1
+      );
+    } else if (event.key === "Enter") {
+      console.log(`Current Frame Index: ${currentFrame}`);
+    }
+  };
+
+  const handleSliderChange = (event, newValue) => {
+    const frameCount = keypointsData.length;
+
+    setValue(newValue);
+    if (event.movementX > 0) {
+      setCurrentFrame((prevFrame) => (prevFrame + 1) % frameCount);
+    } else if (event.movementX < 0) {
+      setCurrentFrame((prevFrame) =>
+        prevFrame === 0 ? frameCount - 1 : prevFrame - 1
+      );
+    }
+  };
 
   return (
     <>
-      <p>{countDown}</p>
       <canvas
         ref={canvasRef}
         style={{
@@ -156,9 +152,13 @@ function FindFramesHelper({ keypointsData }) {
           zIndex: 9,
           border: "1px solid black", // Optional: to visualize the canvas border
           aspectRatio: "16 / 9",
-          maxWidth: "1280px",
           width: "100%",
         }}
+      />
+      <Slider
+        onChange={handleSliderChange}
+        defaultValue={0}
+        max={keypointsData.length}
       />
     </>
   );
