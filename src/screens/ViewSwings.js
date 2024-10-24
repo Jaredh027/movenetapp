@@ -6,6 +6,7 @@ import NavigationPanel from "../Components/NavigationPanel";
 import { getAllSwings, getSwingData } from "../backendCalls/BackendCalls";
 import CustomButton from "../Components/CustomButton";
 import HeaderText from "../Components/HeaderText";
+import { scaleSwingData } from "../datamanipulation/Util";
 
 const Container = (props) => (
   <Grid
@@ -47,6 +48,7 @@ const ViewSwings = () => {
       const swingData = await getSwingData(swingName);
       console.log(swingData);
       setSwingSelected(swingData);
+      scaleSwingData(swingData, 14);
     };
 
     fetchSwingData();

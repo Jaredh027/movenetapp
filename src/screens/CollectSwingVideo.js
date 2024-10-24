@@ -10,6 +10,7 @@ import { sendSwingData } from "../backendCalls/BackendCalls";
 import CameraSwitcher from "./CameraSwitcher";
 import { VideoDetector } from "../swingtracking/VideoDetector";
 import CustomPopover from "../Components/CustomPopover";
+import { normalizeSwingData } from "../datamanipulation/Util";
 
 // Custom RecordButton component
 const RecordButton = (props) => (
@@ -134,12 +135,16 @@ const CollectSwingVideo = () => {
   };
 
   const saveSwingHandler = () => {
+    let normalizedSwing = normalizeSwingData(swingData, 15);
+
     const updatedSwingData = {
       swing_name: swingTitle,
-      ...swingData,
+      ...normalizedSwing,
     };
 
     console.log(updatedSwingData);
+
+    // Lets update coordinates here
 
     sendSwingData(updatedSwingData);
     handleClosePopover();
