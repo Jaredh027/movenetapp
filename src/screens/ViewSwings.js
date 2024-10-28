@@ -48,7 +48,6 @@ const ViewSwings = () => {
       const swingData = await getSwingData(swingName);
       console.log(swingData);
       setSwingSelected(swingData);
-      scaleSwingData(swingData, 14);
     };
 
     fetchSwingData();

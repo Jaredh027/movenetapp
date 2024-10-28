@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useState } from "react";
 
 function DisplayKeypoints({ keypointsData }) {
-  console.log(keypointsData);
+  // console.log(keypointsData);
   const canvasRef = useRef(null);
   const [countDown, setCountDown] = useState(3);
 

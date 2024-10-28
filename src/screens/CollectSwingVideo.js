@@ -135,7 +135,7 @@ const CollectSwingVideo = () => {
   };
 
   const saveSwingHandler = () => {
-    let normalizedSwing = normalizeSwingData(swingData, 15);
+    let normalizedSwing = normalizeSwingData(swingData, 15, 100);
 
     const updatedSwingData = {
       swing_name: swingTitle,
