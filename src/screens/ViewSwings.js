@@ -31,6 +31,7 @@ const Container = (props) => (
 
 const ViewSwings = () => {
   const [swingSelected, setSwingSelected] = useState();
+  const [secondSwingSelected, setSecondSwingSelected] = useState();
   const [swingArray, setSwingArray] = useState([]);
 
   useEffect(() => {
@@ -46,8 +47,10 @@ const ViewSwings = () => {
   const handleSwingSelected = (swingName) => {
     const fetchSwingData = async () => {
       const swingData = await getSwingData(swingName);
+      const swindData2 = await getSwingData(swingArray[0].swing_name);
       console.log(swingData);
       setSwingSelected(swingData);
+      setSecondSwingSelected(swindData2);
     };
 
     fetchSwingData();
@@ -76,7 +79,10 @@ const ViewSwings = () => {
             <h2>Upload a Swing First</h2>
           )}
           {swingSelected && (
-            <FindFramesHelper keypointsData={swingSelected.frames} />
+            <FindFramesHelper
+              keypointsData={swingSelected.frames}
+              swingArray={secondSwingSelected.frames}
+            />
           )}
         </Container>
       </Grid>
