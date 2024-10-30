@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Grid, Button } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import { ReactComponent as Upload } from "../icons/upload.svg";
@@ -21,8 +21,22 @@ const WelcomeItem = (props) => (
   </Grid>
 );
 
-function NavigationPanel() {
+function NavigationPanel({ selectedButtonIndex }) {
   const navigate = useNavigate();
+
+  const buttonTextArr = [
+    { text: "Test your swing against the champs" },
+    { text: "Check your consistency", icon: <Check /> },
+    { text: "Upload your swing", icon: <Upload />, nav: "/recordswing" },
+    {
+      text: "Look at Uploaded Swings",
+      icon: <Layers />,
+      nav: "/uploadedswings",
+    },
+    { text: "Test out switching cameras", nav: "/switchcamera" },
+    { text: "Evaluate Your Swing", nav: "/swingevaluation" },
+  ];
+
   return (
     <div
       style={{
@@ -39,25 +53,20 @@ function NavigationPanel() {
         <HeaderText>Welcome to the Swing Workshop</HeaderText>
         <h3 style={{ color: "#bddbe8" }}>Let's get dialed</h3>
         <Grid sx={{ marginTop: 5 }}>
-          <CustomButton>Test your swing against the champs</CustomButton>
-          <CustomButton startIcon={<Check />}>
-            Check your consistency
-          </CustomButton>
-          <CustomButton
-            startIcon={<Upload />}
-            onClick={() => navigate("/recordswing")}
-          >
-            Upload your swing
-          </CustomButton>
-          <CustomButton
-            startIcon={<Layers />}
-            onClick={() => navigate("/uploadedswings")}
-          >
-            Look at Uploaded Swings
-          </CustomButton>
-          <CustomButton onClick={() => navigate("/switchcamera")}>
-            Test out switching cameras
-          </CustomButton>
+          {buttonTextArr.map((buttonObj, index) => {
+            return (
+              <CustomButton
+                key={buttonObj.text}
+                onClick={() => {
+                  navigate(buttonObj.nav);
+                }}
+                selected={index === selectedButtonIndex ? true : false}
+                startIcon={buttonObj?.icon}
+              >
+                {buttonObj.text}{" "}
+              </CustomButton>
+            );
+          })}
         </Grid>
       </WelcomeItem>
     </div>

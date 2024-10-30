@@ -157,7 +157,7 @@ const CollectSwingVideo = () => {
   return (
     <Grid container spacing={1}>
       <Grid item xs={3}>
-        <NavigationPanel />
+        <NavigationPanel selectedButtonIndex={2} />
       </Grid>
       <Grid item xs={9}>
         <Container>

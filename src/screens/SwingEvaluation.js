@@ -7,6 +7,8 @@ import { getAllSwings, getSwingData } from "../backendCalls/BackendCalls";
 import CustomButton from "../Components/CustomButton";
 import HeaderText from "../Components/HeaderText";
 import { scaleSwingData } from "../datamanipulation/Util";
+import SwingSelectionPanel from "../Components/SwingSelectionPanel";
+import EvaluationPointsPanel from "../Components/EvaluationPointsPanel";
 
 const Container = (props) => (
   <Grid
@@ -29,9 +31,21 @@ const Container = (props) => (
   </Grid>
 );
 
-const ViewSwings = () => {
+const SwingContainer = (props) => (
+  <Grid
+    {...props}
+    sx={{
+      display: "flex",
+      flexDirection: "row",
+    }}
+  >
+    {props.children}
+  </Grid>
+);
+
+const SwingEvaluation = () => {
   const [swingSelected, setSwingSelected] = useState();
-  const [secondSwingSelected, setSecondSwingSelected] = useState();
+  const [showHeadData, setShowHeadData] = useState(false);
   const [swingArray, setSwingArray] = useState([]);
 
   useEffect(() => {
@@ -50,7 +64,6 @@ const ViewSwings = () => {
       const swindData2 = await getSwingData(swingArray[0].swing_name);
       console.log(swingData);
       setSwingSelected(swingData);
-      setSecondSwingSelected(swindData2);
     };
 
     fetchSwingData();
@@ -59,35 +72,37 @@ const ViewSwings = () => {
   return (
     <Grid container spacing={1}>
       <Grid item xs={3}>
-        <NavigationPanel selectedButtonIndex={3} />
+        <NavigationPanel selectedButtonIndex={5} />
       </Grid>
       <Grid item xs={9}>
         <Container>
-          {swingArray.length > 0 ? (
-            <>
-              <HeaderText>Select a Swing to Analyze</HeaderText>
-              {swingArray.map((swing) => (
-                <CustomButton
-                  key={swing.swing_id}
-                  onClick={() => handleSwingSelected(swing.swing_name)}
-                >
-                  {swing.swing_name}
-                </CustomButton>
-              ))}
-            </>
-          ) : (
-            <h2>Upload a Swing First</h2>
-          )}
-          {swingSelected && (
-            <FindFramesHelper
-              keypointsData={swingSelected.frames}
-              swingArray={secondSwingSelected.frames}
+          <SwingContainer>
+            <SwingSelectionPanel
+              swingArray={swingArray}
+              handleSwingSelected={handleSwingSelected}
             />
-          )}
+            {swingSelected && (
+              <>
+                <FindFramesHelper
+                  keypointsData={swingSelected.frames}
+                  showHeadData={showHeadData}
+                />
+                {/* <CustomButton onClick={() => setShowHeadData(true)}>
+                  Head Evaluation
+                </CustomButton> */}
+                <EvaluationPointsPanel
+                  pointsOfEvaluationArr={["Head Evaluation"]}
+                  handleEvaluationSelected={() =>
+                    setShowHeadData((prevBool) => !prevBool)
+                  }
+                />
+              </>
+            )}
+          </SwingContainer>
         </Container>
       </Grid>
     </Grid>
   );
 };
 
-export default ViewSwings;
+export default SwingEvaluation;

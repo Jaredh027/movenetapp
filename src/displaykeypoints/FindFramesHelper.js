@@ -1,10 +1,16 @@
 import React, { useRef, useEffect, useState } from "react";
 import Slider from "@mui/material/Slider";
 
-function FindFramesHelper({ keypointsData, swingArray }) {
+function FindFramesHelper({ keypointsData, keypointsData2, showHeadData }) {
   const canvasRef = useRef(null);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [value, setValue] = useState(0);
+  const [headPath, setHeadPath] = useState([]); // New state to store head positions
+
+  // This is for tracking when a new swing is chosen so we can reset the headPath
+  useEffect(() => {
+    setHeadPath([]);
+  }, [keypointsData]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -51,7 +57,7 @@ function FindFramesHelper({ keypointsData, swingArray }) {
                   ctx.beginPath();
                   ctx.moveTo(scaledX, scaledY);
                   ctx.lineTo(scaledX2, scaledY2);
-                  ctx.strokeStyle = "darkgray"; // Color for connections
+                  ctx.strokeStyle = "darkgray";
                   ctx.lineWidth = 2;
                   ctx.stroke();
                 }
@@ -62,32 +68,47 @@ function FindFramesHelper({ keypointsData, swingArray }) {
       });
     };
 
+    const drawHeadPath = () => {
+      if (headPath.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(headPath[0].scaledX, headPath[0].scaledY);
+        for (let i = 1; i < headPath.length; i++) {
+          ctx.lineTo(headPath[i].scaledX, headPath[i].scaledY);
+        }
+        ctx.strokeStyle = "green";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    };
+
     // Clear canvas before each draw
     ctx.clearRect(0, 0, videoWidth, videoHeight);
 
-    // Draw the keypoints for the first swing (keypointsData)
     const frameKeypoints1 = keypointsData[currentFrame];
     if (frameKeypoints1) {
-      drawKeypoints(frameKeypoints1, "red"); // Use a distinct color for the first swing
+      drawKeypoints(frameKeypoints1, "red");
     }
 
-    // Draw the keypoints for the second swing (swingArray)
-    if (swingArray) {
-      console.log("swingArray[1]", swingArray[1]);
-      const frameKeypoints2 = swingArray[currentFrame];
+    if (keypointsData2) {
+      const frameKeypoints2 = keypointsData2[currentFrame];
       if (frameKeypoints2) {
-        drawKeypoints(frameKeypoints2, "blue"); // Use a different color for the second swing
-      } else {
-        console.log(
-          "FrameKeypoints2 is undefined for currentFrame:",
-          currentFrame
-        );
+        drawKeypoints(frameKeypoints2, "blue");
       }
-    } else {
-      console.log("swingArray[1] is undefined");
     }
 
-    // Handle keyboard events for navigating frames
+    // Update head path if showHeadData is true
+    if (showHeadData && frameKeypoints1) {
+      const headKeypoint = frameKeypoints1[0][0];
+      if (headKeypoint && headKeypoint.score > 0.3) {
+        const scaledX = (headKeypoint.x / 800) * videoWidth + videoWidth / 2;
+        const scaledY = videoHeight - (headKeypoint.y / 450) * videoHeight;
+        setHeadPath((prevHeadPath) => [...prevHeadPath, { scaledX, scaledY }]);
+      }
+    }
+
+    // Draw the entire head path
+    drawHeadPath();
+
     const handleKeyDown = (event) => {
       const frameCount = keypointsData.length;
       if (event.key === "ArrowRight") {
@@ -107,7 +128,7 @@ function FindFramesHelper({ keypointsData, swingArray }) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [keypointsData, swingArray, currentFrame]);
+  }, [keypointsData, keypointsData2, currentFrame, showHeadData]);
 
   const handleSliderChange = (event, newValue) => {
     setValue(newValue);
@@ -120,10 +141,9 @@ function FindFramesHelper({ keypointsData, swingArray }) {
         ref={canvasRef}
         style={{
           width: "100%",
-          maxWidth: "640px",
           display: "block",
           margin: "0 auto",
-          border: "1px solid black",
+          borderRadius: 2,
           backgroundColor: "lightblue",
         }}
       />

@@ -1,7 +1,7 @@
 import React from "react";
 import { Grid, Button } from "@mui/material";
 
-const CustomButton = ({ children, startIcon, ...props }) => (
+const CustomButton = ({ children, startIcon, selected, ...props }) => (
   <Button
     {...props}
     startIcon={
@@ -14,7 +14,7 @@ const CustomButton = ({ children, startIcon, ...props }) => (
             alignItems: "center",
             justifyContent: "center",
             marginLeft: 8,
-            color: "#00cc00",
+            color: selected ? "#bddbe8" : "#00cc00",
           }}
         >
           {React.cloneElement(startIcon, {
@@ -26,7 +26,7 @@ const CustomButton = ({ children, startIcon, ...props }) => (
     sx={{
       textAlign: "center",
       borderRadius: 2,
-      backgroundColor: "#bddbe8",
+      backgroundColor: selected ? "#00cc00" : "#bddbe8",
       color: "white",
       display: "flex",
       marginBottom: 2,
