@@ -1,11 +1,17 @@
 import React, { useRef, useEffect, useState } from "react";
 import Slider from "@mui/material/Slider";
 
-function FindFramesHelper({ keypointsData, keypointsData2, showHeadData }) {
+function FindFramesHelper({
+  keypointsData,
+  keypointsData2,
+  showHeadData,
+  showPathData,
+}) {
   const canvasRef = useRef(null);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [value, setValue] = useState(0);
-  const [headPath, setHeadPath] = useState([]); // New state to store head positions
+  const [headPath, setHeadPath] = useState([]);
+  const [pathPath, setPathPath] = useState([]);
 
   // This is for tracking when a new swing is chosen so we can reset the headPath
   useEffect(() => {
@@ -81,6 +87,19 @@ function FindFramesHelper({ keypointsData, keypointsData2, showHeadData }) {
       }
     };
 
+    const drawPathPath = () => {
+      if (pathPath.length > 1) {
+        ctx.beginPath();
+        ctx.moveTo(pathPath[0].scaledX, pathPath[0].scaledY);
+        for (let i = 1; i < pathPath.length; i++) {
+          ctx.lineTo(pathPath[i].scaledX, pathPath[i].scaledY);
+        }
+        ctx.strokeStyle = "blue";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    };
+
     // Clear canvas before each draw
     ctx.clearRect(0, 0, videoWidth, videoHeight);
 
@@ -106,8 +125,19 @@ function FindFramesHelper({ keypointsData, keypointsData2, showHeadData }) {
       }
     }
 
+    if (showPathData && frameKeypoints1) {
+      console.log(frameKeypoints1);
+      const pathKeypoint = frameKeypoints1[0][9];
+      if (pathKeypoint) {
+        const scaledX = (pathKeypoint.x / 800) * videoWidth + videoWidth / 2;
+        const scaledY = videoHeight - (pathKeypoint.y / 450) * videoHeight;
+        setPathPath((prevPathPath) => [...prevPathPath, { scaledX, scaledY }]);
+      }
+    }
+
     // Draw the entire head path
     drawHeadPath();
+    drawPathPath();
 
     const handleKeyDown = (event) => {
       const frameCount = keypointsData.length;

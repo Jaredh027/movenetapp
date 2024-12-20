@@ -26,8 +26,12 @@ function NavigationPanel({ selectedButtonIndex }) {
 
   const buttonTextArr = [
     { text: "Test your swing against the champs" },
-    { text: "Check your consistency", icon: <Check /> },
+    { text: "Compare your swings", icon: <Check />, nav: "/consistency" },
     { text: "Upload your swing", icon: <Upload />, nav: "/recordswing" },
+    {
+      text: "Rapid Swing Analysis",
+      nav: "/rapidswinganalysis",
+    },
     {
       text: "Look at Uploaded Swings",
       icon: <Layers />,

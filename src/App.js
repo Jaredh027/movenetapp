@@ -9,6 +9,7 @@ import CollectSwingVideo from "./screens/CollectSwingVideo";
 import ViewSwings from "./screens/ViewSwings";
 import CameraSwitcher from "./screens/CameraSwitcher";
 import SwingEvaluation from "./screens/SwingEvaluation";
+import RapidSwingAnalyzer from "./screens/RapidSwingAnalyzer";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/uploadedswings" element={<ViewSwings />} />
         <Route path="/switchcamera" element={<CameraSwitcher />} />
         <Route path="/swingevaluation" element={<SwingEvaluation />} />
+        <Route path="/rapidswinganalysis" element={<RapidSwingAnalyzer />} />
       </Routes>
     </Router>
   );

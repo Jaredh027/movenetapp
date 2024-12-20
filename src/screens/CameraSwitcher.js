@@ -11,6 +11,15 @@ const CameraSwitcher = forwardRef((props, ref) => {
   const [camNum, setCamNum] = useState(0);
   const [currentStream, setCurrentStream] = useState(null);
 
+  // Stop camera when user goes away from screen
+  useEffect(() => {
+    return () => {
+      if (currentStream) {
+        currentStream.getTracks().forEach((track) => track.stop());
+      }
+    };
+  }, [currentStream]);
+
   useEffect(() => {
     const getVideoDevices = async () => {
       try {
@@ -47,8 +56,9 @@ const CameraSwitcher = forwardRef((props, ref) => {
 
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { deviceId: { exact: deviceId } },
+        video: { deviceId: { ideal: deviceId } },
       });
+
       if (ref.current) {
         ref.current.srcObject = stream; // Set the video stream
         ref.current.onloadedmetadata = () => {

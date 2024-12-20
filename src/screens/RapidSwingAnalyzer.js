@@ -51,7 +51,7 @@ const Container = (props) => (
   </Grid>
 );
 
-const CollectSwingVideo = () => {
+const RapidSwingAnalyzer = () => {
   const [countdownStarted, setCountdownStarted] = useState(false);
 
   const saveSwingHandler = (swingData, swingTitle) => {
@@ -68,12 +68,12 @@ const CollectSwingVideo = () => {
   return (
     <Grid container spacing={1}>
       <Grid item xs={3}>
-        <NavigationPanel selectedButtonIndex={2} />
+        <NavigationPanel selectedButtonIndex={3} />
       </Grid>
       <Grid item xs={9}>
         <Container>
           <RecordButton onClick={() => setCountdownStarted(true)}>
-            Start Recording
+            Start Rapid Analysis
           </RecordButton>
           <RecordSwing
             startRecording={countdownStarted}
@@ -85,4 +85,4 @@ const CollectSwingVideo = () => {
   );
 };
 
-export default CollectSwingVideo;
+export default RapidSwingAnalyzer;

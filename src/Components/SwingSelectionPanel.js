@@ -2,6 +2,7 @@ import { Container, Grid } from "@mui/material";
 import React from "react";
 import HeaderText from "./HeaderText";
 import CustomButton from "./CustomButton";
+import SubHeaderText from "./SubHeaderText";
 
 const PanelContainer = (props) => (
   <Grid
@@ -19,6 +20,8 @@ const PanelContainer = (props) => (
     {props.children}
   </Grid>
 );
+
+// Should be Scrollable
 const SwingSelectionContainer = (props) => (
   <Grid
     {...props}
@@ -29,7 +32,6 @@ const SwingSelectionContainer = (props) => (
       color: "#34302D",
       alignItems: "center",
       flexDirection: "column",
-      marginRight: "20px",
       marginTop: "20px",
       backgroundColor: "white",
       padding: "20px",
@@ -43,7 +45,7 @@ const SwingSelectionContainer = (props) => (
 function SwingSelectionPanel({ swingArray, handleSwingSelected }) {
   return (
     <PanelContainer>
-      <HeaderText>Select a Swing</HeaderText>
+      <SubHeaderText>Select Swing</SubHeaderText>
       <SwingSelectionContainer>
         {swingArray.length > 0 ? (
           <>

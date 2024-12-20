@@ -21,16 +21,21 @@ const PanelContainer = (props) => (
 
 function EvaluationPointsPanel({
   pointsOfEvaluationArr,
-  handleEvaluationSelected,
+  handleHeadEvaluationSelected,
+  handlePathEvaluationSelected,
 }) {
+  let functionArr = [
+    handleHeadEvaluationSelected,
+    handlePathEvaluationSelected,
+  ];
   return (
     <PanelContainer>
       {pointsOfEvaluationArr.length > 0 ? (
         <>
-          {pointsOfEvaluationArr.map((evaluation) => (
+          {pointsOfEvaluationArr.map((evaluation, index) => (
             <CustomButton
               key={evaluation}
-              onClick={() => handleEvaluationSelected(evaluation)}
+              onClick={() => functionArr[index](evaluation)}
             >
               {evaluation}
             </CustomButton>

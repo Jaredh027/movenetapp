@@ -46,6 +46,7 @@ const SwingContainer = (props) => (
 const SwingEvaluation = () => {
   const [swingSelected, setSwingSelected] = useState();
   const [showHeadData, setShowHeadData] = useState(false);
+  const [showPathData, setShowPathData] = useState(false);
   const [swingArray, setSwingArray] = useState([]);
 
   useEffect(() => {
@@ -69,6 +70,24 @@ const SwingEvaluation = () => {
     fetchSwingData();
   };
 
+  const getSwingDataPercentages = () => {
+    let headStartValue = swingSelected.frames[0][0][0].x;
+    let headTotalValue = 0;
+    let usedFramesCount = 0;
+    swingSelected.frames.forEach((frame) => {
+      if (frame[0][0].score > 0.3) {
+        usedFramesCount++;
+        headTotalValue += frame[0][0].x;
+      }
+    });
+    let percentErrorHead = Math.abs(
+      headStartValue - headTotalValue / usedFramesCount
+    );
+    console.log(percentErrorHead);
+  };
+  if (swingSelected) {
+    getSwingDataPercentages();
+  }
   return (
     <Grid container spacing={1}>
       <Grid item xs={3}>
@@ -86,14 +105,18 @@ const SwingEvaluation = () => {
                 <FindFramesHelper
                   keypointsData={swingSelected.frames}
                   showHeadData={showHeadData}
+                  showPathData={showPathData}
                 />
                 {/* <CustomButton onClick={() => setShowHeadData(true)}>
                   Head Evaluation
                 </CustomButton> */}
                 <EvaluationPointsPanel
-                  pointsOfEvaluationArr={["Head Evaluation"]}
-                  handleEvaluationSelected={() =>
+                  pointsOfEvaluationArr={["Head Evaluation", "Path Evaluation"]}
+                  handleHeadEvaluationSelected={() =>
                     setShowHeadData((prevBool) => !prevBool)
+                  }
+                  handlePathEvaluationSelected={() =>
+                    setShowPathData((prevBool) => !prevBool)
                   }
                 />
               </>
