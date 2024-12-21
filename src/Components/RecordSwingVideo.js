@@ -1,35 +1,9 @@
 import React, { useRef, useEffect, useState } from "react";
-import { Button, Grid, TextField } from "@mui/material";
-import NavigationPanel from "../Components/NavigationPanel";
-import { sendSwingData } from "../backendCalls/BackendCalls";
+import { Grid } from "@mui/material";
 import CameraSwitcher from "../screens/CameraSwitcher";
-import { VideoDetector } from "../swingtracking/VideoDetector";
-import CustomPopover from "../Components/CustomPopover";
-import { normalizeSwingData } from "../datamanipulation/Util";
+import { FFmpeg } from "@ffmpeg/ffmpeg";
+import { fetchFile } from "@ffmpeg/util";
 
-// Custom Container component
-const Container = (props) => (
-  <Grid
-    {...props}
-    sx={{
-      textAlign: "center",
-      display: "flex",
-      justifyContent: "center",
-      color: "#34302D",
-      alignItems: "center",
-      flexDirection: "column",
-      marginRight: "20px",
-      marginTop: "20px",
-      backgroundColor: "#6699cc",
-      padding: "20px",
-      borderRadius: 2,
-    }}
-  >
-    {props.children}
-  </Grid>
-);
-
-// Timer display for countdown
 const TimerText = (props) => (
   <p
     {...props}
@@ -49,61 +23,181 @@ const TimerText = (props) => (
   </p>
 );
 
-const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
+const RecordSwingVideo = ({ startRecording }) => {
   const webcamRef = useRef(null);
-  const canvasRef = useRef(null);
   const [countdown, setCountdown] = useState(3);
-  const isRecordingRef = useRef(false);
-  const recordedFramesRef = useRef([]);
-  const [swingData, setSwingData] = React.useState(null);
+  const recordedChunksRef = useRef([]);
+  const mediaRecorderRef = useRef(null);
+  const [processedVideoURL, setProcessedVideoURL] = useState("");
+  const ffmpegRef = useRef(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
-  // For popover
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [swingTitle, setSwingTitle] = React.useState("");
-
-  // Pose detection and video processing logic
+  // Initialize FFmpeg
   useEffect(() => {
-    VideoDetector(webcamRef, canvasRef, isRecordingRef, recordedFramesRef);
+    const loadFFmpeg = async () => {
+      try {
+        const ffmpeg = new FFmpeg();
+        ffmpegRef.current = ffmpeg;
+
+        ffmpeg.on("log", ({ message }) => {
+          if (message.includes("error")) {
+            console.error(message);
+          }
+          // Optionally, filter out progress logs
+        });
+
+        await ffmpeg.load();
+        console.log("FFmpeg loaded successfully");
+      } catch (error) {
+        console.error("Failed to load FFmpeg:", error);
+      }
+    };
+
+    loadFFmpeg();
+
+    // Cleanup
+    return () => {
+      if (ffmpegRef.current) {
+        ffmpegRef.current.terminate();
+      }
+    };
   }, []);
 
-  // Countdown logic for recording
   useEffect(() => {
     if (startRecording && countdown > 0) {
       const intervalId = setInterval(() => {
         setCountdown((prevCountdown) => {
           if (prevCountdown <= 1) {
             clearInterval(intervalId);
-            isRecordingRef.current = true; // Start recording poses
+            startRecordingVideo();
             setCountdown("Start");
 
             setTimeout(() => {
-              isRecordingRef.current = false; // Stop recording
               setCountdown("Stop");
-
-              // Prepare the swing data and send it to the backend
-              if (recordedFramesRef.current !== null) {
-                setSwingData({
-                  frames: recordedFramesRef.current,
-                });
-                setIsOpen(true);
-              }
-            }, 2000); // Record for an additional 2 seconds after countdown ends
+              stopRecordingVideo();
+            }, 2000);
           }
           return prevCountdown - 1;
         });
-      }, 1000); // Decrease countdown every second
-      return () => clearInterval(intervalId); // Clean up the interval
+      }, 1000);
+      return () => clearInterval(intervalId);
     }
   }, [startRecording, countdown]);
 
-  const handleClosePopover = () => {
-    setIsOpen(false);
-    setAnchorEl(null);
+  const startRecordingVideo = () => {
+    if (webcamRef.current && webcamRef.current.srcObject) {
+      const stream = webcamRef.current.srcObject;
+      const mediaRecorder = new MediaRecorder(stream, {
+        mimeType: "video/webm",
+        videoBitsPerSecond: 2500000, // 2.5 Mbps for better quality
+      });
+
+      recordedChunksRef.current = [];
+
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          recordedChunksRef.current.push(event.data);
+        }
+      };
+
+      mediaRecorder.onstop = async () => {
+        try {
+          setIsProcessing(true);
+          const blob = new Blob(recordedChunksRef.current, {
+            type: "video/webm",
+          });
+
+          const slowBlob = await slowDownVideo(blob);
+          const slowURL = URL.createObjectURL(slowBlob);
+
+          // Clean up previous URL if it exists
+          if (processedVideoURL) {
+            URL.revokeObjectURL(processedVideoURL);
+          }
+
+          setProcessedVideoURL(slowURL);
+
+          // Trigger download
+          const a = document.createElement("a");
+          a.href = slowURL;
+          a.download = "recorded-video.webm";
+          a.click();
+        } catch (error) {
+          console.error("Error processing video:", error);
+        } finally {
+          setIsProcessing(false);
+        }
+      };
+
+      mediaRecorder.start();
+      mediaRecorderRef.current = mediaRecorder;
+    } else {
+      console.error("Webcam stream is not available.");
+    }
   };
 
-  const handleInputChange = (event) => {
-    setSwingTitle(event.target.value);
+  const stopRecordingVideo = () => {
+    if (mediaRecorderRef.current) {
+      mediaRecorderRef.current.stop();
+    }
+  };
+
+  const slowDownVideo = async (inputBlob) => {
+    if (!ffmpegRef.current?.loaded) {
+      console.error("FFmpeg not loaded");
+      return inputBlob;
+    }
+
+    const ffmpeg = ffmpegRef.current;
+
+    try {
+      // Convert blob to Uint8Array
+      const data = await inputBlob.arrayBuffer();
+      const inputData = new Uint8Array(data);
+
+      // Write the file
+      await ffmpeg.writeFile("input.webm", inputData);
+
+      // Execute FFmpeg command with optimized parameters
+      await ffmpeg.exec([
+        "-i",
+        "input.webm",
+        "-vf",
+        "setpts=2.0*PTS",
+        "-c:v",
+        "libvpx",
+        "-b:v",
+        "2500K", // Higher bitrate
+        "-maxrate",
+        "3000K",
+        "-bufsize",
+        "6000K",
+        "-deadline",
+        "good", // Balance between quality and speed
+        "-cpu-used",
+        "2", // Faster processing
+        "-auto-alt-ref",
+        "0",
+        "-qmin",
+        "4",
+        "-qmax",
+        "48",
+        "output.webm",
+      ]);
+
+      // Read the output
+      const outputData = await ffmpeg.readFile("output.webm");
+
+      // Clean up
+      await ffmpeg.deleteFile("input.webm");
+      await ffmpeg.deleteFile("output.webm");
+
+      return new Blob([outputData], { type: "video/webm" });
+    } catch (error) {
+      console.error("Error processing video:", error);
+      if (error.message) console.error("Error message:", error.message);
+      return inputBlob;
+    }
   };
 
   return (
@@ -114,8 +208,8 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
         alignItems: "center",
         justifyContent: "center",
         width: "100%",
-        maxWidth: "1280px", // Ensuring video and canvas stay within 1280px max
-        aspectRatio: "16 / 9", // Maintain 16:9 ratio
+        maxWidth: "1280px",
+        aspectRatio: "16 / 9",
         overflow: "hidden",
       }}
     >
@@ -123,64 +217,33 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
         style={{
           position: "relative",
           width: "100%",
-          height: "100%", // Explicit height to fill the parent
+          height: "100%",
           overflow: "hidden",
         }}
       >
-        {/* Pass ref to CameraSwitcher for video stream */}
         <CameraSwitcher
           ref={webcamRef}
           style={{
-            transform: "scaleX(-1)", // Mirror video
+            transform: "scaleX(-1)",
             position: "absolute",
             top: 0,
             left: 0,
             width: "100%",
             height: "100%",
-            objectFit: "cover", // Ensure video covers the div
-          }}
-        />
-        {/* Canvas for drawing poses */}
-        <canvas
-          ref={canvasRef}
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: "100%",
-            height: "100%",
-            zIndex: 10,
-            backgroundColor: "transparent", // Transparent background
+            objectFit: "cover",
           }}
         />
       </div>
-      {/* Display the countdown timer during recording */}
       {startRecording && <TimerText>{countdown}</TimerText>}
-      {isOpen && (
-        <CustomPopover
-          anchorEl={canvasRef.current}
-          open={isOpen}
-          popoverContent={
-            <>
-              <TextField
-                id="outlined-basic"
-                label="Swing Title"
-                variant="outlined"
-                value={swingTitle}
-                onChange={handleInputChange}
-              />
-              <Button
-                onClick={() => {
-                  handleClosePopover();
-                  saveSwingHandler(swingData, swingTitle);
-                }}
-              >
-                Save
-              </Button>
-            </>
-          }
-          handleClose={handleClosePopover}
-        />
+      {isProcessing && <TimerText>Processing...</TimerText>}
+      {processedVideoURL && (
+        <div>
+          <video
+            src={processedVideoURL}
+            controls
+            style={{ width: "100%", marginTop: "20px" }}
+          />
+        </div>
       )}
     </Grid>
   );

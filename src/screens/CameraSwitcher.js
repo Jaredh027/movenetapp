@@ -10,8 +10,6 @@ const CameraSwitcher = forwardRef((props, ref) => {
   const [devices, setDevices] = useState([]);
   const [camNum, setCamNum] = useState(0);
   const [currentStream, setCurrentStream] = useState(null);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [recordedChunks, setRecordedChunks] = useState([]);
 
   // Stop camera when user goes away from screen
   useEffect(() => {
@@ -76,44 +74,6 @@ const CameraSwitcher = forwardRef((props, ref) => {
   const cycleCamera = (selectedDevice) => {
     let camNum = devices.indexOf(selectedDevice);
     setCamNum(camNum);
-  };
-
-  const startRecording = () => {
-    if (currentStream) {
-      const recorder = new MediaRecorder(currentStream, {
-        mimeType: "video/webm",
-      });
-
-      recorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          setRecordedChunks((prev) => [...prev, event.data]);
-        }
-      };
-
-      recorder.onstop = () => {
-        const blob = new Blob(recordedChunks, { type: "video/webm" });
-        const url = URL.createObjectURL(blob);
-
-        // Create a link to download the video
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = "recorded-video.webm";
-        a.click();
-
-        // Revoke the URL to free memory
-        URL.revokeObjectURL(url);
-      };
-
-      recorder.start();
-      setMediaRecorder(recorder);
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorder) {
-      mediaRecorder.stop();
-      setMediaRecorder(null);
-    }
   };
 
   return (
