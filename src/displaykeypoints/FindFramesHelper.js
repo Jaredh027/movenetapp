@@ -57,16 +57,15 @@ function FindFramesHelper({
             if (keypointConnections[index]) {
               keypointConnections[index].forEach((j) => {
                 const kp2 = keypointsArray[j];
-                if (kp2 && kp2.score > 0.3) {
-                  const scaledX2 = (kp2.x / 800) * videoWidth + videoWidth / 2;
-                  const scaledY2 = videoHeight - (kp2.y / 450) * videoHeight;
-                  ctx.beginPath();
-                  ctx.moveTo(scaledX, scaledY);
-                  ctx.lineTo(scaledX2, scaledY2);
-                  ctx.strokeStyle = "darkgray";
-                  ctx.lineWidth = 2;
-                  ctx.stroke();
-                }
+
+                const scaledX2 = (kp2.x / 800) * videoWidth + videoWidth / 2;
+                const scaledY2 = videoHeight - (kp2.y / 450) * videoHeight;
+                ctx.beginPath();
+                ctx.moveTo(scaledX, scaledY);
+                ctx.lineTo(scaledX2, scaledY2);
+                ctx.strokeStyle = "darkgray";
+                ctx.lineWidth = 2;
+                ctx.stroke();
               });
             }
           }

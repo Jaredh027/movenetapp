@@ -49,7 +49,7 @@ const TimerText = (props) => (
   </p>
 );
 
-const RecordSwing = ({ startRecording, saveSwingHandler }) => {
+const RecordSwingLive = ({ startRecording, saveSwingHandler }) => {
   const webcamRef = useRef(null);
   const canvasRef = useRef(null);
   const [countdown, setCountdown] = useState(3);
@@ -186,4 +186,4 @@ const RecordSwing = ({ startRecording, saveSwingHandler }) => {
   );
 };
 
-export default RecordSwing;
+export default RecordSwingLive;

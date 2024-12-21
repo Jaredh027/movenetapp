@@ -4,9 +4,9 @@ import NavigationPanel from "../Components/NavigationPanel";
 import CustomButton from "../Components/CustomButton";
 import { ReactComponent as Video } from "../icons/video.svg";
 
-import RecordSwing from "../Components/RecordSwing";
 import { normalizeSwingData } from "../datamanipulation/Util";
 import { sendSwingData } from "../backendCalls/BackendCalls";
+import RecordSwingLive from "../Components/RecordSwing";
 
 // Custom RecordButton component
 const RecordButton = (props) => (
@@ -75,7 +75,7 @@ const CollectSwingVideo = () => {
           <RecordButton onClick={() => setCountdownStarted(true)}>
             Start Recording
           </RecordButton>
-          <RecordSwing
+          <RecordSwingLive
             startRecording={countdownStarted}
             saveSwingHandler={saveSwingHandler}
           />
