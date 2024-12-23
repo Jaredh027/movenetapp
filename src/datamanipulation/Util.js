@@ -5,6 +5,9 @@ export const normalizeSwingData = (
   desiredScaleLength
 ) => {
   let frames = swingData.frames;
+  console.log(swingData);
+  console.log(frames);
+  console.log(frames[0]);
   const offsetFromJoint = offCenterValueFromJoint(
     frames[0],
     equilizerJointIndex
