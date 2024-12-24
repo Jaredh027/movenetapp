@@ -6,8 +6,8 @@ import { ReactComponent as Video } from "../icons/video.svg";
 
 import { normalizeSwingData } from "../datamanipulation/Util";
 import { sendSwingData } from "../backendCalls/BackendCalls";
-import RecordSwingLive from "../Components/RecordSwingLive";
 import RecordSwingVideo from "../Components/RecordSwingVideo";
+import { Container } from "../Components/Container";
 
 // Custom RecordButton component
 const RecordButton = (props) => (
@@ -31,26 +31,6 @@ const RecordButton = (props) => (
 );
 
 // Custom Container component
-const Container = (props) => (
-  <Grid
-    {...props}
-    sx={{
-      textAlign: "center",
-      display: "flex",
-      justifyContent: "center",
-      color: "#34302D",
-      alignItems: "center",
-      flexDirection: "column",
-      marginRight: "20px",
-      marginTop: "20px",
-      backgroundColor: "#6699cc",
-      padding: "20px",
-      borderRadius: 2,
-    }}
-  >
-    {props.children}
-  </Grid>
-);
 
 const CollectSwingVideo = () => {
   const [countdownStarted, setCountdownStarted] = useState(false);

@@ -6,6 +6,7 @@ import { ReactComponent as Check } from "../icons/check-square.svg";
 import { ReactComponent as Layers } from "../icons/layers.svg";
 import CustomButton from "./CustomButton";
 import HeaderText from "./HeaderText";
+import { Container } from "./Container";
 
 const WelcomeItem = (props) => (
   <Grid
@@ -37,43 +38,42 @@ function NavigationPanel({ selectedButtonIndex }) {
       icon: <Layers />,
       nav: "/uploadedswings",
     },
-    { text: "Test out switching cameras", nav: "/switchcamera" },
     { text: "Evaluate Your Swing", nav: "/swingevaluation" },
   ];
 
   return (
-    <div
+    <Container
       style={{
-        width: "fit-content",
-        backgroundColor: "#6699cc",
-        marginLeft: "20px",
-        padding: 40,
-        borderRadius: 4,
-        marginTop: 20,
-        boxShadow: "0 4px 8px rgba(0, 0, 0, 0.2)",
+        backgroundColor: "transparent",
       }}
     >
-      <WelcomeItem item>
-        <HeaderText>Welcome to the Swing Workshop</HeaderText>
-        <h3 style={{ color: "#bddbe8" }}>Let's get dialed</h3>
-        <Grid sx={{ marginTop: 5 }}>
-          {buttonTextArr.map((buttonObj, index) => {
-            return (
-              <CustomButton
-                key={buttonObj.text}
-                onClick={() => {
-                  navigate(buttonObj.nav);
-                }}
-                selected={index === selectedButtonIndex ? true : false}
-                startIcon={buttonObj?.icon}
-              >
-                {buttonObj.text}{" "}
-              </CustomButton>
-            );
-          })}
-        </Grid>
-      </WelcomeItem>
-    </div>
+      <div
+        style={{
+          width: "100%",
+        }}
+      >
+        <WelcomeItem item>
+          <HeaderText>Menu</HeaderText>
+          <h3 style={{ color: "#bddbe8" }}>Let's get dialed</h3>
+          <Grid sx={{ marginTop: 5 }}>
+            {buttonTextArr.map((buttonObj, index) => {
+              return (
+                <CustomButton
+                  key={buttonObj.text}
+                  onClick={() => {
+                    navigate(buttonObj.nav);
+                  }}
+                  selected={index === selectedButtonIndex ? true : false}
+                  startIcon={buttonObj?.icon}
+                >
+                  {buttonObj.text}{" "}
+                </CustomButton>
+              );
+            })}
+          </Grid>
+        </WelcomeItem>
+      </div>
+    </Container>
   );
 }
 

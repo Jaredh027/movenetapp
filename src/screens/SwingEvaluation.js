@@ -1,35 +1,11 @@
 import React, { useEffect, useState } from "react";
 import FindFramesHelper from "../displaykeypoints/FindFramesHelper";
-import { JAREDSWING } from "../progolfvideo/CONSTANTS";
 import { Grid } from "@mui/material";
 import NavigationPanel from "../Components/NavigationPanel";
 import { getAllSwings, getSwingData } from "../backendCalls/BackendCalls";
-import CustomButton from "../Components/CustomButton";
-import HeaderText from "../Components/HeaderText";
-import { scaleSwingData } from "../datamanipulation/Util";
-import SwingSelectionPanel from "../Components/SwingSelectionPanel";
 import EvaluationPointsPanel from "../Components/EvaluationPointsPanel";
-
-const Container = (props) => (
-  <Grid
-    {...props}
-    sx={{
-      textAlign: "center",
-      display: "flex",
-      justifyContent: "center",
-      color: "#34302D",
-      alignItems: "center",
-      flexDirection: "column",
-      marginRight: "20px",
-      marginTop: "20px",
-      backgroundColor: "#6699cc",
-      padding: "20px",
-      borderRadius: 2,
-    }}
-  >
-    {props.children}
-  </Grid>
-);
+import { SelectSwing } from "../Components/SelectSwing";
+import { Container } from "../Components/Container";
 
 const SwingContainer = (props) => (
   <Grid
@@ -96,7 +72,7 @@ const SwingEvaluation = () => {
       <Grid item xs={9}>
         <Container>
           <SwingContainer>
-            <SwingSelectionPanel
+            <SelectSwing
               swingArray={swingArray}
               handleSwingSelected={handleSwingSelected}
             />

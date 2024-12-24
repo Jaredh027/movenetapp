@@ -1,33 +1,8 @@
 import React, { useRef, useEffect, useState } from "react";
 import { Button, Grid, TextField } from "@mui/material";
-import NavigationPanel from "../Components/NavigationPanel";
-import { sendSwingData } from "../backendCalls/BackendCalls";
 import CameraSwitcher from "../screens/CameraSwitcher";
 import { VideoDetector } from "../swingtracking/VideoDetector";
 import CustomPopover from "../Components/CustomPopover";
-import { normalizeSwingData } from "../datamanipulation/Util";
-
-// Custom Container component
-const Container = (props) => (
-  <Grid
-    {...props}
-    sx={{
-      textAlign: "center",
-      display: "flex",
-      justifyContent: "center",
-      color: "#34302D",
-      alignItems: "center",
-      flexDirection: "column",
-      marginRight: "20px",
-      marginTop: "20px",
-      backgroundColor: "#6699cc",
-      padding: "20px",
-      borderRadius: 2,
-    }}
-  >
-    {props.children}
-  </Grid>
-);
 
 // Timer display for countdown
 const TimerText = (props) => (

@@ -7,6 +7,7 @@ import { getAllSwings, getSwingData } from "../backendCalls/BackendCalls";
 import CustomButton from "../Components/CustomButton";
 import HeaderText from "../Components/HeaderText";
 import { scaleSwingData } from "../datamanipulation/Util";
+import { SelectSwing } from "../Components/SelectSwing";
 
 const Container = (props) => (
   <Grid
@@ -63,21 +64,10 @@ const ViewSwings = () => {
       </Grid>
       <Grid item xs={9}>
         <Container>
-          {swingArray.length > 0 ? (
-            <>
-              <HeaderText>Select a Swing to Analyze</HeaderText>
-              {swingArray.map((swing) => (
-                <CustomButton
-                  key={swing.swing_id}
-                  onClick={() => handleSwingSelected(swing.swing_name)}
-                >
-                  {swing.swing_name}
-                </CustomButton>
-              ))}
-            </>
-          ) : (
-            <h2>Upload a Swing First</h2>
-          )}
+          <SelectSwing
+            swingArray={swingArray}
+            handleSwingSelected={() => handleSwingSelected}
+          />
           {swingSelected && (
             <FindFramesHelper
               keypointsData={swingSelected.frames}

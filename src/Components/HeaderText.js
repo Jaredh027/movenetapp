@@ -7,7 +7,7 @@ const HeaderText = ({ children }) => {
       sx={{
         marginLeft: 0,
         marginRight: 0,
-        marginBottom: 0,
+        marginBottom: 2,
         marginTop: 0,
         color: "white",
         fontSize: "1.5em",

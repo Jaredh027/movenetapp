@@ -4,7 +4,7 @@ import NavigationPanel from "../Components/NavigationPanel";
 import CustomButton from "../Components/CustomButton";
 import { ReactComponent as Video } from "../icons/video.svg";
 
-import RecordSwingLive from "../Components/RecordSwingLive";
+import RecordSwingVideo from "../Components/RecordSwingVideo";
 import { normalizeSwingData } from "../datamanipulation/Util";
 import { sendSwingData } from "../backendCalls/BackendCalls";
 
@@ -75,7 +75,7 @@ const RapidSwingAnalyzer = () => {
           <RecordButton onClick={() => setCountdownStarted(true)}>
             Start Rapid Analysis
           </RecordButton>
-          <RecordSwingLive
+          <RecordSwingVideo
             startRecording={countdownStarted}
             saveSwingHandler={saveSwingHandler}
           />
