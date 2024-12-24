@@ -45,6 +45,7 @@ function NavigationPanel({ selectedButtonIndex }) {
     <Container
       style={{
         backgroundColor: "transparent",
+        backgroundImage: "none",
       }}
     >
       <div

@@ -10,8 +10,8 @@ export const Container = (props) => (
       color: "#34302D",
       alignItems: "center",
       flexDirection: "column",
-      backgroundColor: "#6699cc",
-      padding: "20px",
+      backgroundImage: "linear-gradient(to bottom right, #484848, #242424)",
+      padding: "40px",
       borderRadius: 2,
     }}
   >
