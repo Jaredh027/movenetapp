@@ -20,13 +20,19 @@ const WelcomeItem = (props) => (
 );
 
 const PText = (props) => (
-  <p {...props} style={{ color: "white" }}>
+  <p
+    {...props}
+    style={{ color: "white", fontSize: "1rem", lineHeight: "1.6rem" }}
+  >
     {props.children}
   </p>
 );
 
 const SubHeaderText = (props) => (
-  <h3 {...props} style={{ color: "white" }}>
+  <h3
+    {...props}
+    style={{ color: "white", fontSize: "2rem", lineHeight: "1.2rem" }}
+  >
     {props.children}
   </h3>
 );
@@ -34,11 +40,12 @@ const SubHeaderText = (props) => (
 function Home() {
   return (
     <>
-      <Grid container sx={{ flex: 1, flexDirection: "row" }}>
-        <Grid item xs={3}>
-          <NavigationPanel />
-        </Grid>
-        <Grid item xs={9} sx={{ paddingLeft: 1 }}>
+      <NavigationPanel />
+      <Grid
+        container
+        sx={{ flex: 1, flexDirection: "row", justifyContent: "center" }}
+      >
+        <Grid item sx={{ paddingLeft: 1 }}>
           <Container style={{ backgroundColor: "#242424" }}>
             <Grid container>
               <Grid item xs={8}>

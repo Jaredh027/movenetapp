@@ -44,7 +44,7 @@ function FindFramesHelper({
     const drawKeypoints = (keypoints, color) => {
       keypoints.forEach((keypointsArray) => {
         keypointsArray.forEach(({ x, y, score }, index) => {
-          if (score > 0.3) {
+          if (score > 0.2) {
             const scaledX = (x / 800) * videoWidth + videoWidth / 2;
             const scaledY = videoHeight - (y / 450) * videoHeight;
 

@@ -10,7 +10,7 @@ export const SelectSwing = ({ swingArray, handleSwingSelected }) => {
           <div style={{ display: "flex", flexDirection: "row", columnGap: 10 }}>
             {swingArray.map((swing) => (
               <CustomButton
-                key={swing.swing_id}
+                key={swing.id}
                 onClick={() => handleSwingSelected(swing.swing_name)}
               >
                 {swing.swing_name}
