@@ -57,39 +57,9 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
         frames: recordedFramesRef.current,
       });
       setIsOpen(true);
+      setAnchorEl(webcamRef);
     }
   }, [processedVideoURL]);
-
-  // Initialize FFmpeg
-  useEffect(() => {
-    const loadFFmpeg = async () => {
-      try {
-        const ffmpeg = new FFmpeg();
-        ffmpegRef.current = ffmpeg;
-
-        ffmpeg.on("log", ({ message }) => {
-          if (message.includes("error")) {
-            console.error(message);
-          }
-          // Optionally, filter out progress logs
-        });
-
-        await ffmpeg.load();
-        console.log("FFmpeg loaded successfully");
-      } catch (error) {
-        console.error("Failed to load FFmpeg:", error);
-      }
-    };
-
-    loadFFmpeg();
-
-    // Cleanup
-    return () => {
-      if (ffmpegRef.current) {
-        ffmpegRef.current.terminate();
-      }
-    };
-  }, []);
 
   useEffect(() => {
     if (startRecording && countdown > 0) {
@@ -135,8 +105,7 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
             type: "video/webm",
           });
 
-          const slowBlob = await slowDownVideo(blob);
-          const slowURL = URL.createObjectURL(slowBlob);
+          const slowURL = URL.createObjectURL(blob);
 
           // Clean up previous URL if it exists
           if (processedVideoURL) {
@@ -144,12 +113,6 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
           }
 
           setProcessedVideoURL(slowURL);
-
-          //   Trigger download
-          //   const a = document.createElement("a");
-          //   a.href = slowURL;
-          //   a.download = "recorded-video.webm";
-          //   a.click();
         } catch (error) {
           console.error("Error processing video:", error);
         } finally {
@@ -167,64 +130,6 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
   const stopRecordingVideo = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
-    }
-  };
-
-  const slowDownVideo = async (inputBlob) => {
-    if (!ffmpegRef.current?.loaded) {
-      console.error("FFmpeg not loaded");
-      return inputBlob;
-    }
-
-    const ffmpeg = ffmpegRef.current;
-
-    try {
-      // Convert blob to Uint8Array
-      const data = await inputBlob.arrayBuffer();
-      const inputData = new Uint8Array(data);
-
-      // Write the file
-      await ffmpeg.writeFile("input.webm", inputData);
-
-      // Execute FFmpeg command with optimized parameters
-      await ffmpeg.exec([
-        "-i",
-        "input.webm",
-        "-vf",
-        "setpts=2.0*PTS",
-        "-c:v",
-        "libvpx",
-        "-b:v",
-        "2500K", // Higher bitrate
-        "-maxrate",
-        "3000K",
-        "-bufsize",
-        "6000K",
-        "-deadline",
-        "good", // Balance between quality and speed
-        "-cpu-used",
-        "2", // Faster processing
-        "-auto-alt-ref",
-        "0",
-        "-qmin",
-        "4",
-        "-qmax",
-        "48",
-        "output.webm",
-      ]);
-
-      // Read the output
-      const outputData = await ffmpeg.readFile("output.webm");
-
-      // Clean up
-      await ffmpeg.deleteFile("input.webm");
-      await ffmpeg.deleteFile("output.webm");
-
-      return new Blob([outputData], { type: "video/webm" });
-    } catch (error) {
-      console.error("Error processing video:", error);
-      if (error.message) console.error("Error message:", error.message);
-      return inputBlob;
     }
   };
 

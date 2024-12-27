@@ -10,14 +10,14 @@ export const CaptureVideoMovement = async (videoURL, recordedFramesRef) => {
   const detector = await poseDetection.createDetector(
     poseDetection.SupportedModels.MoveNet,
     {
-      modelType: poseDetection.movenet.modelType.SINGLEPOSE_THUNDER,
+      modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
     }
   );
 
   // Create a video element
   const video = document.createElement("video");
-  video.playbackRate = 0.3;
-  // video.src = videoURL;
+  video.playbackRate = 0.5; // Slowing it down for better detection
+  video.src = videoURL;
   video.crossOrigin = "anonymous"; // For cross-origin video
   video.muted = true; // Mute for autoplay compatibility
   await video.play(); // Ensure the video starts playing
