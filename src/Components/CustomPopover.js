@@ -10,18 +10,25 @@ const CustomPopover = ({ anchorEl, open, popoverContent, handleClose }) => {
           anchorEl={anchorEl}
           onClose={handleClose}
           anchorOrigin={{
-            vertical: "bottom",
-            horizontal: "left",
+            vertical: "center",
+            horizontal: "center",
           }}
           sx={{
             left: -30,
             marginTop: 1,
             "& .MuiPaper-root": {
-              backgroundColor: "rgba(0,0,0,0.25)", // Change to your desired color
-              width: "10%",
+              backgroundImage:
+                "linear-gradient(to bottom right, #484848, #242424)",
+              width: "40%",
               "& .MuiButton-root": {
-                fontSize: 10,
+                fontSize: "1rem",
                 width: "100%",
+              },
+              "& p": {
+                fontSize: "1rem",
+                width: "100%",
+                color: "white",
+                textAlign: "center",
               },
             },
           }}

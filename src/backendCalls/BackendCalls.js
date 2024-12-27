@@ -39,3 +39,16 @@ export const getAllSwings = async () => {
     return [];
   }
 };
+
+export const deleteSwing = async (id) => {
+  try {
+    const response = await axios.post(
+      "http://127.0.0.1:5001/api/delete-swing",
+      { id }
+    );
+
+    console.log("Response from server:", response.data);
+  } catch (error) {
+    console.error("Error deleting swing:", error);
+  }
+};
