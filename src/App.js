@@ -10,11 +10,15 @@ import ViewSwings from "./screens/ViewSwings";
 import CameraSwitcher from "./screens/CameraSwitcher";
 import SwingEvaluation from "./screens/SwingEvaluation";
 import RapidSwingAnalyzer from "./screens/RapidSwingAnalyzer";
+import Login from "./screens/Login";
+import Signup from "./screens/Signup";
 
 function App() {
   return (
     <Router>
       <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/" element={<Home />} />
         <Route path="/consistency" element={<SwingConsistency />} />
         <Route path="/recordswing" element={<CollectSwingVideo />} />
