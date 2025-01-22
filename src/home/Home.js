@@ -40,12 +40,39 @@ const SubHeaderText = (props) => (
 function Home() {
   return (
     <>
-      <NavigationPanel />
       <Grid
         container
-        sx={{ flex: 1, flexDirection: "row", justifyContent: "center" }}
+        sx={{
+          flex: 1,
+          flexDirection: "row",
+          justifyContent: "center",
+          width: "90%",
+        }}
       >
-        <Grid item sx={{ paddingLeft: 1 }}>
+        <Grid item sx={{ width: "20%" }}>
+          <Container style={{ backgroundColor: "#242424" }}>
+            <Grid container>
+              <Grid item>
+                <WelcomeItem>
+                  <HeaderText>Welcome Back {}</HeaderText>
+                  <SubHeaderText>Compare your swings</SubHeaderText>
+                  <PText>
+                    Find out where your swing is deviating, and fix your
+                    inconsisties with this feature.
+                  </PText>
+                </WelcomeItem>
+              </Grid>
+              <Grid item>
+                <img
+                  width="auto"
+                  style={{ maxHeight: "400px" }}
+                  src="/golf_image.png"
+                />
+              </Grid>
+            </Grid>
+          </Container>
+        </Grid>
+        <Grid item>
           <Container style={{ backgroundColor: "#242424" }}>
             <Grid container>
               <Grid item xs={8}>
@@ -82,6 +109,7 @@ function Home() {
           </Container>
         </Grid>
       </Grid>
+      <NavigationPanel />
     </>
   );
 }

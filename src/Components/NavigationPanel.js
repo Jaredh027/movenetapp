@@ -12,8 +12,10 @@ const WelcomeItem = (props) => (
   <Grid
     {...props}
     sx={{
+      width: "90%",
       textAlign: "left",
-      display: "block",
+      display: "flex",
+      flexDirection: "column",
       justifyContent: "center",
       color: "#34302D",
     }}
@@ -46,21 +48,29 @@ function NavigationPanel({ selectedButtonIndex }) {
       style={{
         backgroundColor: "transparent",
         backgroundImage: "none",
-        position: "fixed",
       }}
     >
       <div
         style={{
           width: "100%",
+          justifyItems: "center",
         }}
       >
         <WelcomeItem item>
           <HeaderText>Menu</HeaderText>
           <h3 style={{ color: "#bddbe8" }}>Let's get dialed</h3>
-          <Grid sx={{ marginTop: 5 }}>
+          <Grid
+            sx={{
+              marginTop: 5,
+              display: "flex",
+              flexDirection: "row",
+            }}
+            columnGap={1}
+          >
             {buttonTextArr.map((buttonObj, index) => {
               return (
                 <CustomButton
+                  style={{ width: "-webkit-fill-available" }}
                   key={buttonObj.text}
                   onClick={() => {
                     navigate(buttonObj.nav);
