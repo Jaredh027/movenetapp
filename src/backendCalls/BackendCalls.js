@@ -1,6 +1,7 @@
 import axios from "axios";
 
 export const sendSwingData = async (swingData) => {
+  const swingDataAndUserId = { ...swingData };
   try {
     const response = await axios.post(
       "http://127.0.0.1:5001/api/swing-data",
@@ -50,5 +51,19 @@ export const deleteSwing = async (id) => {
     console.log("Response from server:", response.data);
   } catch (error) {
     console.error("Error deleting swing:", error);
+  }
+};
+
+export const registerUser = async (userData) => {
+  try {
+    const response = await axios.post("http://127.0.0.1:5001/api/register", {
+      email: userData.email,
+      password: userData.password,
+      firstName: userData.firstName,
+    });
+
+    console.log("Response from server:", response.data);
+  } catch (error) {
+    console.error("Error registering user:", error);
   }
 };

@@ -3,6 +3,10 @@ import { Container } from "../Components/Container";
 import HeaderText from "../Components/HeaderText";
 import CustomButton from "../Components/CustomButton";
 const Login = () => {
+  const handleOAuthLogin = () => {
+    window.location.href = "http://localhost:5001/auth/google";
+  };
+
   return (
     <div
       style={{
@@ -14,7 +18,9 @@ const Login = () => {
         <Grid container flexDirection="column" rowGap={1}>
           <TextField placeholder="Email"></TextField>
           <TextField placeholder="Password"></TextField>
-          <CustomButton>Sign in</CustomButton>
+          <CustomButton onClick={handleOAuthLogin}>
+            Login with OAuth
+          </CustomButton>
         </Grid>
       </Container>
       <HeaderText>

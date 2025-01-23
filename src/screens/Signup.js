@@ -15,7 +15,7 @@ const Signup = () => {
           <TextField placeholder="Email"></TextField>
           <TextField placeholder="First Name"></TextField>
           <TextField placeholder="Password"></TextField>
-          <CustomButton onClick={() => }>Create</CustomButton>
+          <CustomButton>Create</CustomButton>
         </Grid>
       </Container>
     </div>
