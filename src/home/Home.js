@@ -1,5 +1,5 @@
-import React from "react";
-import { ReactComponent as Target } from "../icons/target.svg";
+import React, { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import NavigationPanel from "../Components/NavigationPanel";
 import { Grid } from "@mui/material";
 import { Container } from "../Components/Container";
@@ -38,6 +38,28 @@ const SubHeaderText = (props) => (
 );
 
 function Home() {
+  const [userInfo, setUserInfo] = useState(null);
+  const location = useLocation();
+
+  useEffect(() => {
+    const queryParams = new URLSearchParams(location.search);
+    const userId = queryParams.get("userId");
+    if (userId) {
+      // Fetch user data or display a personalized message
+      fetchUserData(userId);
+    }
+  }, [location]);
+
+  const fetchUserData = async (userId) => {
+    try {
+      const response = await fetch(`http://localhost:5001/api/user/${userId}`);
+      const data = await response.json();
+      setUserInfo(data);
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+    }
+  };
+
   return (
     <>
       <Grid
@@ -54,12 +76,7 @@ function Home() {
             <Grid container>
               <Grid item>
                 <WelcomeItem>
-                  <HeaderText>Welcome Back {}</HeaderText>
-                  <SubHeaderText>Compare your swings</SubHeaderText>
-                  <PText>
-                    Find out where your swing is deviating, and fix your
-                    inconsisties with this feature.
-                  </PText>
+                  <HeaderText>Hello {userInfo.name.split(" ")[0]},</HeaderText>
                 </WelcomeItem>
               </Grid>
               <Grid item>
