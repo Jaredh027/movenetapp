@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { Grid, Button } from "@mui/material";
+import Box from "@mui/material/Box";
+
 import { useNavigate } from "react-router-dom";
 import { ReactComponent as Upload } from "../icons/upload.svg";
 import { ReactComponent as Check } from "../icons/check-square.svg";
@@ -7,22 +9,7 @@ import { ReactComponent as Layers } from "../icons/layers.svg";
 import CustomButton from "./CustomButton";
 import HeaderText from "./HeaderText";
 import { Container } from "./Container";
-
-const WelcomeItem = (props) => (
-  <Grid
-    {...props}
-    sx={{
-      width: "90%",
-      textAlign: "left",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      color: "#34302D",
-    }}
-  >
-    {props.children}
-  </Grid>
-);
+import "../App.css";
 
 function NavigationPanel({ selectedButtonIndex }) {
   const navigate = useNavigate();
@@ -44,48 +31,38 @@ function NavigationPanel({ selectedButtonIndex }) {
   ];
 
   return (
-    <Container
+    <div
       style={{
-        backgroundColor: "transparent",
-        backgroundImage: "none",
+        width: "100%",
+        justifyItems: "left",
       }}
     >
-      <div
-        style={{
+      <p className="SHText">Let's get dialed</p>
+      <Box
+        sx={{
+          display: "grid",
+          columnGap: 1,
           width: "100%",
-          justifyItems: "center",
+          gridTemplateColumns: `repeat(${buttonTextArr.length}, 1fr)`,
         }}
       >
-        <WelcomeItem item>
-          <HeaderText>Menu</HeaderText>
-          <h3 style={{ color: "#bddbe8" }}>Let's get dialed</h3>
-          <Grid
-            sx={{
-              marginTop: 5,
-              display: "flex",
-              flexDirection: "row",
-            }}
-            columnGap={1}
-          >
-            {buttonTextArr.map((buttonObj, index) => {
-              return (
-                <CustomButton
-                  style={{ width: "-webkit-fill-available" }}
-                  key={buttonObj.text}
-                  onClick={() => {
-                    navigate(buttonObj.nav);
-                  }}
-                  selected={index === selectedButtonIndex ? true : false}
-                  startIcon={buttonObj?.icon}
-                >
-                  {buttonObj.text}{" "}
-                </CustomButton>
-              );
-            })}
-          </Grid>
-        </WelcomeItem>
-      </div>
-    </Container>
+        {buttonTextArr.map((buttonObj, index) => {
+          return (
+            <CustomButton
+              style={{ width: "-webkit-fill-available" }}
+              onClick={() => {
+                navigate(buttonObj.nav);
+              }}
+              key={buttonObj.text}
+              selected={index === selectedButtonIndex ? true : false}
+              startIcon={buttonObj?.icon}
+            >
+              <p className="PText">{buttonObj.text} </p>
+            </CustomButton>
+          );
+        })}
+      </Box>
+    </div>
   );
 }
 
