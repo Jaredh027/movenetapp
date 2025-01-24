@@ -11,8 +11,9 @@ export const Container = (props) => (
       alignItems: "center",
       flexDirection: "column",
       backgroundImage: "linear-gradient(to bottom right, #484848, #242424)",
-      padding: "40px",
+      padding: "2.5rem",
       borderRadius: 2,
+      opacity: 0.9,
     }}
   >
     {props.children}

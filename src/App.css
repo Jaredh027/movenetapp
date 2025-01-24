@@ -1,0 +1,32 @@
+.HText {
+  font-size: 2rem;
+  font-weight: 600;
+  margin: 0;
+  color: white;
+}
+.SHText {
+  font-size: 1.5rem;
+  line-height: 1.6;
+
+  margin-top: 0;
+  margin-bottom: 0;
+
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  column-gap: 1vmin;
+  color: white;
+}
+
+.PText {
+  font-size: 1rem;
+  line-height: 2;
+
+  margin-top: 0;
+  margin-bottom: 0;
+
+  font-weight: 300;
+
+  display: flex;
+  color: white;
+}

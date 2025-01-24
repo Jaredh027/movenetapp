@@ -4,9 +4,10 @@ export const Header = () => {
     <div
       style={{
         width: "100%",
-        backgroundColor: "transparent",
+        backgroundColor: "rgba(0, 204, 0, 0.8)",
         margin: 0,
-        padding: 15,
+        padding: "2rem",
+        paddingBottom: "4rem",
         textAlign: "center",
       }}
     >
