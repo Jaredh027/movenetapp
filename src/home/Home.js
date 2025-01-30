@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useContext } from "react";
-import { useLocation } from "react-router-dom";
+import React, { useEffect, useState } from "react";
 import { useUserContext } from "../User_Id_Handling/UserContext";
 import NavigationPanel from "../Components/NavigationPanel";
 import { Grid } from "@mui/material";
@@ -45,7 +44,6 @@ function Home() {
   const { userId } = useUserContext();
   const [userInfo, setUserInfo] = useState(null);
   const [swingCount, setSwingCount] = useState(null);
-  const location = useLocation();
 
   useEffect(() => {
     if (userId) {
@@ -55,7 +53,14 @@ function Home() {
   }, [userId]);
 
   return (
-    <Box sx={{ justifyContent: "center", width: "90%" }}>
+    <Box
+      sx={{
+        display: "grid",
+        columnGap: 9,
+        justifyContent: "center",
+        width: "100%",
+      }}
+    >
       <Box
         sx={{
           display: "grid",
@@ -63,6 +68,7 @@ function Home() {
           gridTemplateAreas: `"account dashboard dashboard dashboard"`,
           gridTemplateRows: "auto",
           columnGap: 3,
+          justifySelf: "center",
         }}
       >
         <Box sx={{ gridArea: "account" }}>
@@ -105,9 +111,6 @@ function Home() {
           </Container>
         </Box>
       </Box>
-      <div>
-        <NavigationPanel />
-      </div>
     </Box>
   );
 }

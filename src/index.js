@@ -14,7 +14,7 @@ root.render(
       <div
         style={{
           position: "absolute",
-          top: "5.5rem",
+          margin: "1.5rem",
           justifyItems: "center",
           width: "100%",
         }}

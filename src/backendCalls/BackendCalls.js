@@ -31,19 +31,6 @@ export const getSwingData = async (swingName) => {
   }
 };
 
-export const getAllSwings = async (userId) => {
-  try {
-    const response = await axios.get(
-      `http://127.0.0.1:5001/api/swings/${userId}`
-    );
-
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching all swings:", error);
-    return [];
-  }
-};
-
 export const deleteSwing = async (id) => {
   try {
     const response = await axios.post(
@@ -78,5 +65,16 @@ export const fetchUserData = async (userId) => {
     return data;
   } catch (error) {
     console.error("Error fetching user data:", error);
+  }
+};
+
+export const getAllSwings = async (userId) => {
+  try {
+    const response = await fetch(`http://127.0.0.1:5001/api/swings/${userId}`);
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error("Error fetching all swings:", error);
+    return [];
   }
 };

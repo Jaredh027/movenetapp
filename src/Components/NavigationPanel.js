@@ -31,19 +31,14 @@ function NavigationPanel({ selectedButtonIndex }) {
   ];
 
   return (
-    <div
-      style={{
-        width: "100%",
-        justifyItems: "left",
-      }}
-    >
-      <p className="SHText">Let's get dialed</p>
+    <div>
+      {/* <p className="SHText">Let's get dialed</p> */}
       <Box
         sx={{
           display: "grid",
           columnGap: 1,
-          width: "100%",
-          gridTemplateColumns: `repeat(${buttonTextArr.length}, 1fr)`,
+          width: "max-content",
+          // gridTemplateColumns: `repeat(${buttonTextArr.length}, 1fr)`,
         }}
       >
         {buttonTextArr.map((buttonObj, index) => {

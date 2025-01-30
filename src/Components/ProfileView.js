@@ -1,7 +1,10 @@
 import { Box } from "@mui/material";
 import { Container } from "./Container";
+import NavigationPanel from "./NavigationPanel";
 
 const ProfileView = ({ userInfo, swingCount }) => {
+  console.log(swingCount);
+  console.log(userInfo);
   return (
     <Container style={{ backgroundColor: "#242424" }}>
       <Box sx={{ alignContent: "center" }}>
@@ -33,6 +36,7 @@ const ProfileView = ({ userInfo, swingCount }) => {
         </Box>
         <Box>
           <p className="SHText">Uploaded Swings {swingCount?.length}</p>
+          <NavigationPanel />
         </Box>
       </Box>
     </Container>
