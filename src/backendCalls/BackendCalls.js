@@ -1,11 +1,12 @@
 import axios from "axios";
 
-export const sendSwingData = async (swingData) => {
-  const swingDataAndUserId = { ...swingData };
+export const sendSwingData = async (swingData, userId) => {
+  const swingDataAndUserId = { ...swingData, userId };
+  console.log(swingDataAndUserId);
   try {
     const response = await axios.post(
       "http://127.0.0.1:5001/api/swing-data",
-      swingData
+      swingDataAndUserId
     );
     console.log("Response from server:", response.data);
   } catch (error) {
@@ -30,9 +31,11 @@ export const getSwingData = async (swingName) => {
   }
 };
 
-export const getAllSwings = async () => {
+export const getAllSwings = async (userId) => {
   try {
-    const response = await axios.get("http://127.0.0.1:5001/api/swings");
+    const response = await axios.get(
+      `http://127.0.0.1:5001/api/swings/${userId}`
+    );
 
     return response.data;
   } catch (error) {
@@ -54,16 +57,26 @@ export const deleteSwing = async (id) => {
   }
 };
 
-export const registerUser = async (userData) => {
-  try {
-    const response = await axios.post("http://127.0.0.1:5001/api/register", {
-      email: userData.email,
-      password: userData.password,
-      firstName: userData.firstName,
-    });
+// export const registerUser = async (userData) => {
+//   try {
+//     const response = await axios.post("http://127.0.0.1:5001/api/register", {
+//       email: userData.email,
+//       password: userData.password,
+//       firstName: userData.firstName,
+//     });
 
-    console.log("Response from server:", response.data);
+//     console.log("Response from server:", response.data);
+//   } catch (error) {
+//     console.error("Error registering user:", error);
+//   }
+// };
+
+export const fetchUserData = async (userId) => {
+  try {
+    const response = await fetch(`http://localhost:5001/api/user/${userId}`);
+    const data = await response.json();
+    return data;
   } catch (error) {
-    console.error("Error registering user:", error);
+    console.error("Error fetching user data:", error);
   }
 };

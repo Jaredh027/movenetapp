@@ -1,4 +1,4 @@
-import React, { useRef, useEffect, useState } from "react";
+import React, { useRef, useEffect, useState, useContext } from "react";
 import { Button, Grid, TextField } from "@mui/material";
 import NavigationPanel from "../Components/NavigationPanel";
 import CustomButton from "../Components/CustomButton";
@@ -8,6 +8,7 @@ import { normalizeSwingData } from "../datamanipulation/Util";
 import { sendSwingData } from "../backendCalls/BackendCalls";
 import RecordSwingVideo from "../Components/RecordSwingVideo";
 import { Container } from "../Components/Container";
+import { useUserContext } from "../User_Id_Handling/UserContext";
 
 // Custom RecordButton component
 const RecordButton = (props) => (
@@ -34,6 +35,8 @@ const RecordButton = (props) => (
 
 const CollectSwingVideo = () => {
   const [countdownStarted, setCountdownStarted] = useState(false);
+  const { userId } = useUserContext();
+  console.log("userId from context:", userId);
 
   const saveSwingHandler = (swingData, swingTitle) => {
     let normalizedSwing = normalizeSwingData(swingData, 15, 100);
@@ -43,7 +46,7 @@ const CollectSwingVideo = () => {
       ...normalizedSwing,
     };
 
-    sendSwingData(updatedSwingData);
+    sendSwingData(updatedSwingData, userId);
   };
 
   return (
