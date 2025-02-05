@@ -3,29 +3,32 @@ import { Box, Button, Grid, TextField } from "@mui/material";
 import NavigationPanel from "../Components/NavigationPanel";
 import CustomButton from "../Components/CustomButton";
 import { ReactComponent as Video } from "../icons/video.svg";
+import { ReactComponent as Save } from "../icons/save-svgrepo-com.svg";
 
 import { normalizeSwingData } from "../datamanipulation/Util";
 import { sendSwingData } from "../backendCalls/BackendCalls";
 import RecordSwingVideo from "../Components/RecordSwingVideo";
 import { Container } from "../Components/Container";
 import { useUserContext } from "../User_Id_Handling/UserContext";
+import TypeField from "../Components/TypeField";
 
 // Custom RecordButton component
 const RecordButton = (props) => (
+  <CustomButton startIcon={<Video />} {...props}>
+    {props.children}
+  </CustomButton>
+);
+
+const SaveButton = (props) => (
+  <CustomButton startIcon={<Save />} {...props}>
+    {props.children}
+  </CustomButton>
+);
+
+const CancelButton = (props) => (
   <CustomButton
-    startIcon={<Video />}
+    // startIcon={<Save />}
     {...props}
-    sx={{
-      textAlign: "center",
-      borderRadius: 2,
-      backgroundColor: "#34302D",
-      color: "#DC7B19",
-      display: "block",
-      marginLeft: "auto",
-      marginRight: "auto",
-      padding: 2,
-      fontWeight: "bold",
-    }}
   >
     {props.children}
   </CustomButton>
@@ -70,22 +73,30 @@ const CollectSwingVideo = () => {
             <Box
               sx={{
                 display: "grid",
-                gridTemplateColumns: "repeat(2, 1fr)",
+                gridTemplateColumns: "repeat(3, 1fr)",
+                gap: 1,
               }}
             >
-              <RecordButton
-                onClick={() => {
-                  console.log(swingData);
-                  saveSwingHandler(swingData, swingTitle);
-                }}
+              <SaveButton
+                onClick={() => saveSwingHandler(swingData, swingTitle)}
               >
-                {"Save As"}
-              </RecordButton>
-              <TextField
+                {"Save"}
+              </SaveButton>
+
+              <TypeField
                 value={swingTitle}
                 onChange={(event) => setSwingTitle(event.target.value)}
-                placeholder="Swing name"
-              ></TextField>
+                placeholder="Enter swing name"
+              ></TypeField>
+              <CancelButton
+                onClick={() => {
+                  setSwingData(null);
+                  setSwingTitle("");
+                  setSavingVideo(false);
+                }}
+              >
+                Cancel
+              </CancelButton>
             </Box>
           ) : (
             <RecordButton onClick={() => setCountdownStarted(true)}>
