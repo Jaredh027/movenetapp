@@ -6,6 +6,7 @@ import { getAllSwings, getSwingData } from "../backendCalls/BackendCalls";
 import EvaluationPointsPanel from "../Components/EvaluationPointsPanel";
 import { SelectSwing } from "../Components/SelectSwing";
 import { Container } from "../Components/Container";
+import { useUserContext } from "../User_Id_Handling/UserContext";
 
 const SwingContainer = (props) => (
   <Grid
@@ -25,9 +26,11 @@ const SwingEvaluation = () => {
   const [showPathData, setShowPathData] = useState(false);
   const [swingArray, setSwingArray] = useState([]);
 
+  const { userId } = useUserContext();
+
   useEffect(() => {
     const fetchAllSwings = async () => {
-      const swings = await getAllSwings();
+      const swings = await getAllSwings(userId);
       console.log(swings);
       setSwingArray(swings);
     };

@@ -25,52 +25,59 @@ const TimerText = (props) => (
   </p>
 );
 
-const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
+const RecordSwingVideo = ({ startRecording, stopRecording, savingVideo }) => {
   const webcamRef = useRef(null);
-  const [countdown, setCountdown] = useState(3);
+  const playbackVideoRef = useRef(null);
+  const recordedFramesRef = useRef([]);
+  const ffmpegRef = useRef(null);
   const recordedChunksRef = useRef([]);
   const mediaRecorderRef = useRef(null);
+
+  const [countdown, setCountdown] = useState(3);
   const [processedVideoURL, setProcessedVideoURL] = useState("");
-  const ffmpegRef = useRef(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const recordedFramesRef = useRef([]);
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [isOpen, setIsOpen] = React.useState(false);
   const [swingTitle, setSwingTitle] = React.useState("");
   const [swingData, setSwingData] = useState(null);
 
-  // Pose detection and video processing logic
   useEffect(() => {
-    console.log("Processed video URL:", processedVideoURL); // Debugging
-    const analyzeVideo = async () => {
-      try {
-        await CaptureVideoMovement(processedVideoURL, recordedFramesRef);
-      } catch (error) {
-        console.error("Error in pose detection:", error);
-      }
-    };
-
     if (processedVideoURL) {
+      console.log("Updated processedVideoURL:", processedVideoURL);
+      const analyzeVideo = async () => {
+        try {
+          await CaptureVideoMovement(processedVideoURL, recordedFramesRef);
+        } catch (error) {
+          console.error("Error in pose detection:", error);
+        }
+      };
+      console.log("setting swing data");
       analyzeVideo();
+
       setSwingData({
         frames: recordedFramesRef.current,
       });
-      setIsOpen(true);
-      setAnchorEl(webcamRef);
+      stopRecording(swingData);
     }
   }, [processedVideoURL]);
 
   useEffect(() => {
-    if (startRecording && countdown > 0) {
+    if (startRecording) {
+      setCountdown(3);
+      console.log("unsetting proccessed video url");
+      setProcessedVideoURL("");
+      console.log(startRecording);
       const intervalId = setInterval(() => {
         setCountdown((prevCountdown) => {
           if (prevCountdown <= 1) {
             clearInterval(intervalId);
             startRecordingVideo();
+            console.log("Starting timer");
             setCountdown("Start");
 
             setTimeout(() => {
+              console.log("Stopping timer");
               setCountdown("Stop");
               stopRecordingVideo();
             }, 2000);
@@ -80,10 +87,11 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
       }, 1000);
       return () => clearInterval(intervalId);
     }
-  }, [startRecording, countdown]);
+  }, [startRecording]);
 
   const startRecordingVideo = () => {
     if (webcamRef.current && webcamRef.current.srcObject) {
+      console.log("Recording Video");
       const stream = webcamRef.current.srcObject;
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: "video/webm",
@@ -111,8 +119,8 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
           if (processedVideoURL) {
             URL.revokeObjectURL(processedVideoURL);
           }
-
-          setProcessedVideoURL(slowURL);
+          console.log("setting proccessed video url");
+          await setProcessedVideoURL(slowURL);
         } catch (error) {
           console.error("Error processing video:", error);
         } finally {
@@ -130,6 +138,9 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
   const stopRecordingVideo = () => {
     if (mediaRecorderRef.current) {
       mediaRecorderRef.current.stop();
+      recordedChunksRef.current = [];
+      recordedFramesRef.current = [];
+      setCountdown(3);
     }
   };
 
@@ -163,17 +174,21 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
           overflow: "hidden",
         }}
       >
-        {processedVideoURL ? (
+        {processedVideoURL && savingVideo ? (
           <video
+            ref={playbackVideoRef}
             src={processedVideoURL}
             controls
             autoPlay
+            loop
             crossOrigin="anonymous"
             style={{
               width: "100%",
+              objectFit: "contain",
               marginTop: "20px",
               backgroundColor: "black",
             }}
+            onClick={(e) => e.stopPropagation()}
             onError={(e) => console.error("Video playback error:", e)}
           />
         ) : (
@@ -194,35 +209,35 @@ const RecordSwingVideo = ({ startRecording, saveSwingHandler }) => {
       {startRecording && <TimerText>{countdown}</TimerText>}
       {isProcessing && <TimerText>Processing...</TimerText>}
 
-      {isOpen && (
-        <CustomPopover
-          anchorEl={webcamRef.current}
-          open={isOpen}
-          popoverContent={
-            <>
-              <TextField
-                id="outlined-basic"
-                label="Swing Title"
-                variant="outlined"
-                value={swingTitle}
-                onChange={handleInputChange}
-              />
-              <Button
-                onClick={() => {
-                  handleClosePopover();
-                  let swingData = {
-                    frames: recordedFramesRef.current,
-                  };
-                  saveSwingHandler(swingData, swingTitle);
-                }}
-              >
-                Save
-              </Button>
-            </>
-          }
-          handleClose={handleClosePopover}
-        />
-      )}
+      {/* {isOpen && (
+        // <CustomPopover
+        //   anchorEl={webcamRef.current}
+        //   open={isOpen}
+        //   popoverContent={
+        //     <>
+        //       <TextField
+        //         id="outlined-basic"
+        //         label="Swing Title"
+        //         variant="outlined"
+        //         value={swingTitle}
+        //         onChange={handleInputChange}
+        //       />
+        //       <Button
+        //         onClick={() => {
+        //           let swingData = {
+        //             frames: recordedFramesRef.current,
+        //           };
+        //           saveSwingHandler(swingData, swingTitle);
+        //           handleClosePopover();
+        //         }}
+        //       >
+        //         Save
+        //       </Button>
+        //     </>
+        //   }
+        //   handleClose={handleClosePopover}
+        // />
+      )} */}
     </Grid>
   );
 };
