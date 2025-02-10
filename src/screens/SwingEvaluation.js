@@ -69,7 +69,7 @@ const SwingEvaluation = () => {
     getSwingDataPercentages();
   }
   return (
-    <Grid container spacing={1} sx={{ height: "80vh" }}>
+    <Grid container spacing={1}>
       <Grid item xs={3}>
         <NavigationPanel selectedButtonIndex={5} />
       </Grid>
@@ -86,7 +86,7 @@ const SwingEvaluation = () => {
                   display: "grid",
                   gridTemplateColumns: "1fr 6fr",
                   width: "100%",
-                  maxHeight: "75vh",
+                  maxHeight: "80vh",
                   columnGap: 5,
                 }}
               >
@@ -99,7 +99,7 @@ const SwingEvaluation = () => {
                   sx={{
                     display: "grid",
                     gridTemplateColumns: "6fr 1fr",
-                    maxHeight: "70vh",
+
                     columnGap: 5,
                   }}
                 >

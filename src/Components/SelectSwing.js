@@ -28,7 +28,7 @@ export const SelectSwing = ({ swingArray, handleSwingSelected }) => {
   };
 
   return (
-    <div style={{ maxHeight: "70vh", overflow: "scroll" }}>
+    <div>
       {swingArray.length > 0 ? (
         <Box sx={{ justifyItems: "center", width: "100%" }}>
           <HeaderText>Swings</HeaderText>
@@ -39,6 +39,8 @@ export const SelectSwing = ({ swingArray, handleSwingSelected }) => {
               rowGap: 10,
               width: "100%",
               alignItems: "center",
+              overflow: "auto",
+              maxHeight: "60vh",
             }}
           >
             {swingArray.map((swing) => (

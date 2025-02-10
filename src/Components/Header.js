@@ -3,11 +3,10 @@ export const Header = () => {
   return (
     <div
       style={{
-        width: "100%",
         backgroundColor: "rgba(0, 204, 0, 0.8)",
         margin: 0,
         padding: "2rem",
-        paddingBottom: "4rem",
+        paddingBottom: "2rem",
         textAlign: "center",
       }}
     >
