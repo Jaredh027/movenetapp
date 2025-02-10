@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from "react";
 import FindFramesHelper from "../displaykeypoints/FindFramesHelper";
-import { Grid } from "@mui/material";
+import { Box, Grid } from "@mui/material";
 import NavigationPanel from "../Components/NavigationPanel";
 import { getAllSwings, getSwingData } from "../backendCalls/BackendCalls";
 import EvaluationPointsPanel from "../Components/EvaluationPointsPanel";
 import { SelectSwing } from "../Components/SelectSwing";
 import { Container } from "../Components/Container";
 import { useUserContext } from "../User_Id_Handling/UserContext";
+import { SelectSwingLarge } from "../Components/SelectSwingLarge";
 
 const SwingContainer = (props) => (
   <Grid
@@ -36,7 +37,7 @@ const SwingEvaluation = () => {
     };
 
     fetchAllSwings();
-  }, []);
+  }, [userId]);
 
   const handleSwingSelected = (swingName) => {
     const fetchSwingData = async () => {
@@ -68,39 +69,69 @@ const SwingEvaluation = () => {
     getSwingDataPercentages();
   }
   return (
-    <Grid container spacing={1}>
+    <Grid container spacing={1} sx={{ height: "80vh" }}>
       <Grid item xs={3}>
         <NavigationPanel selectedButtonIndex={5} />
       </Grid>
-      <Grid item xs={9}>
+      <Grid item xs={9} sx={{ height: "100%" }}>
         <Container>
-          <SwingContainer>
-            <SelectSwing
-              swingArray={swingArray}
-              handleSwingSelected={handleSwingSelected}
-            />
-            {swingSelected && (
-              <>
-                <FindFramesHelper
-                  keypointsData={swingSelected.frames}
-                  showHeadData={showHeadData}
-                  showPathData={showPathData}
+          <Box
+            sx={{
+              width: "100%",
+            }}
+          >
+            {swingSelected ? (
+              <Box
+                sx={{
+                  display: "grid",
+                  gridTemplateColumns: "1fr 6fr",
+                  width: "100%",
+                  maxHeight: "75vh",
+                  columnGap: 5,
+                }}
+              >
+                <SelectSwing
+                  swingArray={swingArray}
+                  handleSwingSelected={handleSwingSelected}
                 />
-                {/* <CustomButton onClick={() => setShowHeadData(true)}>
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gridTemplateColumns: "6fr 1fr",
+                    maxHeight: "70vh",
+                    columnGap: 5,
+                  }}
+                >
+                  <FindFramesHelper
+                    keypointsData={swingSelected.frames}
+                    showHeadData={showHeadData}
+                    showPathData={showPathData}
+                  />
+                  {/* <CustomButton onClick={() => setShowHeadData(true)}>
                   Head Evaluation
                 </CustomButton> */}
-                <EvaluationPointsPanel
-                  pointsOfEvaluationArr={["Head Evaluation", "Path Evaluation"]}
-                  handleHeadEvaluationSelected={() =>
-                    setShowHeadData((prevBool) => !prevBool)
-                  }
-                  handlePathEvaluationSelected={() =>
-                    setShowPathData((prevBool) => !prevBool)
-                  }
-                />
-              </>
+                  <EvaluationPointsPanel
+                    pointsOfEvaluationArr={[
+                      "Head Evaluation",
+                      "Path Evaluation",
+                    ]}
+                    handleHeadEvaluationSelected={() =>
+                      setShowHeadData((prevBool) => !prevBool)
+                    }
+                    handlePathEvaluationSelected={() =>
+                      setShowPathData((prevBool) => !prevBool)
+                    }
+                  />
+                </Box>
+              </Box>
+            ) : (
+              <SelectSwingLarge
+                swingArray={swingArray}
+                handleSwingSelected={handleSwingSelected}
+              ></SelectSwingLarge>
             )}
-          </SwingContainer>
+          </Box>
         </Container>
       </Grid>
     </Grid>

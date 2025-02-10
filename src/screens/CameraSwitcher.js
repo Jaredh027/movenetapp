@@ -60,11 +60,14 @@ const CameraSwitcher = forwardRef((props, ref) => {
       });
 
       if (ref.current) {
-        ref.current.srcObject = stream; // Set the video stream
+        ref.current.srcObject = stream;
         ref.current.onloadedmetadata = () => {
-          ref.current.play(); // Start playback once metadata is loaded
+          if (ref.current) {
+            ref.current.play();
+          }
         };
       }
+
       setCurrentStream(stream);
     } catch (error) {
       console.error("Error starting video stream:", error);

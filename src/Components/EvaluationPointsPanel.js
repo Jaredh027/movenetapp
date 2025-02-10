@@ -1,6 +1,7 @@
 import { Grid } from "@mui/material";
 import React from "react";
 import CustomButton from "./CustomButton";
+import HeaderText from "./HeaderText";
 
 const PanelContainer = (props) => (
   <Grid
@@ -11,8 +12,6 @@ const PanelContainer = (props) => (
       color: "#34302D",
       alignItems: "center",
       flexDirection: "column",
-      marginRight: "20px",
-      marginTop: "20px",
     }}
   >
     {props.children}
@@ -32,6 +31,7 @@ function EvaluationPointsPanel({
     <PanelContainer>
       {pointsOfEvaluationArr.length > 0 ? (
         <>
+          <HeaderText>Analyze</HeaderText>
           {pointsOfEvaluationArr.map((evaluation, index) => (
             <CustomButton
               key={evaluation}

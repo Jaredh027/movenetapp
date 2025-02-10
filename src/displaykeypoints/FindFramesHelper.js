@@ -170,6 +170,7 @@ function FindFramesHelper({
         ref={canvasRef}
         style={{
           width: "100%",
+          maxWidth: "1280px",
           display: "block",
           margin: "0 auto",
           borderRadius: 2,
