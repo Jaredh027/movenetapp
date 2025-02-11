@@ -3,7 +3,10 @@ import { Button, Grid, TextField } from "@mui/material";
 import CameraSwitcher from "../screens/CameraSwitcher";
 import { FFmpeg } from "@ffmpeg/ffmpeg";
 import { fetchFile } from "@ffmpeg/util";
-import { CaptureVideoMovement } from "../swingtracking/CaptureVideoMovement";
+import {
+  CaptureVideoMovement,
+  preloadMoveNetModel,
+} from "../swingtracking/CaptureVideoMovement";
 import CustomPopover from "./CustomPopover";
 
 const TimerText = (props) => (
@@ -25,7 +28,12 @@ const TimerText = (props) => (
   </p>
 );
 
-const RecordSwingVideo = ({ startRecording, stopRecording, savingVideo }) => {
+const RecordSwingVideo = ({
+  startRecording,
+  stopRecording,
+  savingVideo,
+  proccessedVideo,
+}) => {
   const webcamRef = useRef(null);
   const playbackVideoRef = useRef(null);
   const recordedFramesRef = useRef([]);
@@ -36,6 +44,7 @@ const RecordSwingVideo = ({ startRecording, stopRecording, savingVideo }) => {
   const [countdown, setCountdown] = useState(3);
   const [processedVideoURL, setProcessedVideoURL] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isCapturingDone, setIsCapturingDone] = useState(false);
 
   const [anchorEl, setAnchorEl] = React.useState(null);
   const [isOpen, setIsOpen] = React.useState(false);
@@ -43,24 +52,40 @@ const RecordSwingVideo = ({ startRecording, stopRecording, savingVideo }) => {
   const [swingData, setSwingData] = useState(null);
 
   useEffect(() => {
-    if (processedVideoURL) {
-      console.log("Updated processedVideoURL:", processedVideoURL);
-      const analyzeVideo = async () => {
-        try {
-          await CaptureVideoMovement(processedVideoURL, recordedFramesRef);
-        } catch (error) {
-          console.error("Error in pose detection:", error);
-        }
-      };
-      console.log("setting swing data");
-      analyzeVideo();
+    if (processedVideoURL && playbackVideoRef.current) {
+      CaptureVideoMovement(
+        playbackVideoRef.current,
+        recordedFramesRef,
+        handleCaptureComplete
+      );
+    }
+  }, [processedVideoURL]);
 
+  useEffect(() => {
+    preloadMoveNetModel();
+  }, []);
+
+  useEffect(() => {
+    if (recordedFramesRef.current) {
+      // console.log("Updated processedVideoURL:", processedVideoURL);
+      // const analyzeVideo = async () => {
+      //   try {
+      //     await CaptureVideoMovement(processedVideoURL, recordedFramesRef);
+      //   } catch (error) {
+      //     console.error("Error in pose detection:", error);
+      //   }
+      // };
+      // console.log("setting swing data");
+      // analyzeVideo();
+
+      console.log(recordedFramesRef.current);
       setSwingData({
         frames: recordedFramesRef.current,
       });
+      console.log(swingData);
       stopRecording(swingData);
     }
-  }, [processedVideoURL]);
+  }, [recordedFramesRef.current]);
 
   useEffect(() => {
     if (startRecording) {
@@ -88,6 +113,11 @@ const RecordSwingVideo = ({ startRecording, stopRecording, savingVideo }) => {
       return () => clearInterval(intervalId);
     }
   }, [startRecording]);
+
+  const handleCaptureComplete = () => {
+    console.log("Capture finished!");
+    setIsCapturingDone(true);
+  };
 
   const startRecordingVideo = () => {
     if (webcamRef.current && webcamRef.current.srcObject) {
@@ -178,15 +208,25 @@ const RecordSwingVideo = ({ startRecording, stopRecording, savingVideo }) => {
           <video
             ref={playbackVideoRef}
             src={processedVideoURL}
-            controls
             autoPlay
-            loop
             crossOrigin="anonymous"
             style={{
-              width: "100%",
-              objectFit: "contain",
-              marginTop: "20px",
+              height: "100%",
+
               backgroundColor: "black",
+              position: "relative",
+            }}
+            onLoadedData={async () => {
+              if (playbackVideoRef.current) {
+                try {
+                  // REMOVE the CaptureVideoMovement call here
+                  // It is no longer necessary because we handle it in the useEffect
+                  console.log("VIDEO PROCESSED");
+                  proccessedVideo(true);
+                } catch (error) {
+                  console.error("Error capturing video movement:", error);
+                }
+              }
             }}
             onClick={(e) => e.stopPropagation()}
             onError={(e) => console.error("Video playback error:", e)}

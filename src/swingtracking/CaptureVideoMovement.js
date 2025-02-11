@@ -1,44 +1,85 @@
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs";
 
-export const CaptureVideoMovement = async (videoURL, recordedFramesRef) => {
-  // Initialize TensorFlow.js
+let detector = null; // Store the detector globally
+
+export const preloadMoveNetModel = async () => {
   await tf.setBackend("webgl");
   await tf.ready();
 
-  // Load the MoveNet detector
-  const detector = await poseDetection.createDetector(
-    poseDetection.SupportedModels.MoveNet,
-    {
-      modelType: poseDetection.movenet.modelType.SINGLEPOSE_LIGHTNING,
-    }
-  );
+  if (!detector) {
+    detector = await poseDetection.createDetector(
+      poseDetection.SupportedModels.MoveNet,
+      {
+        modelType: poseDetection.movenet.SINGLEPOSE_LIGHTNING,
+      }
+    );
+  }
 
-  // Create a video element
-  const video = document.createElement("video");
-  video.playbackRate = 0.5; // Slowing it down for better detection
-  video.src = videoURL;
-  video.crossOrigin = "anonymous"; // For cross-origin video
-  video.muted = true; // Mute for autoplay compatibility
-  await video.play(); // Ensure the video starts playing
+  console.log("MoveNet model preloaded");
+};
 
-  const detectPose = async () => {
-    if (video.paused || video.ended) {
-      return; // Stop if video is not playing
-    }
+export const CaptureVideoMovement = async (
+  videoElement,
+  recordedFramesRef,
+  handleCaptureComplete
+) => {
+  if (!videoElement) return;
 
-    // Estimate poses
-    const poses = await detector.estimatePoses(video);
+  if (!detector) {
+    console.warn("MoveNet model not preloaded, loading now...");
+    await preloadMoveNetModel();
+  }
 
-    if (poses.length > 0) {
-      const keypoints = [poses[0].keypoints];
-      recordedFramesRef.current.push(keypoints); // Save keypoints to reference
-    }
+  let isCapturing = true;
 
-    // Continue detection on the next animation frame
-    requestAnimationFrame(detectPose);
-  };
+  return new Promise((resolve) => {
+    const detectPose = async () => {
+      if (!isCapturing || videoElement.paused || videoElement.ended) {
+        console.log("CAPTURING FRAMES DONE");
+        handleCaptureComplete();
+        resolve();
+        return;
+      }
 
-  // Start pose detection
-  detectPose();
+      try {
+        const poses = await detector.estimatePoses(videoElement);
+
+        if (poses.length > 0 && poses[0]?.keypoints) {
+          const keypoints = poses[0].keypoints;
+
+          if (
+            keypoints.every((kp) => kp?.x !== undefined && kp?.y !== undefined)
+          ) {
+            recordedFramesRef.current.push(keypoints);
+          } else {
+            console.warn("Invalid keypoints detected:", keypoints);
+          }
+        } else {
+          console.warn("No pose detected in frame.");
+        }
+      } catch (error) {
+        console.error("Error estimating pose:", error);
+        isCapturing = false;
+        resolve();
+        return;
+      }
+
+      requestAnimationFrame(detectPose);
+    };
+
+    videoElement.onplay = () => {
+      console.log("Video started playing, beginning pose detection...");
+      detectPose();
+    };
+
+    videoElement.onended = async () => {
+      isCapturing = false;
+      console.log("Video ended, stopping pose detection.");
+      handleCaptureComplete();
+      resolve();
+    };
+
+    videoElement.playbackRate = 0.5;
+  });
 };

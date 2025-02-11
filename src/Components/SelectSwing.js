@@ -5,7 +5,11 @@ import { useState } from "react";
 import { Box, Button, TextField } from "@mui/material";
 import { deleteSwing } from "../backendCalls/BackendCalls";
 
-export const SelectSwing = ({ swingArray, handleSwingSelected }) => {
+export const SelectSwing = ({
+  swingArray,
+  handleSwingSelected,
+  deleteSwingHandler,
+}) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [dblClickSwing, setdblClickSwing] = useState(null);
@@ -13,13 +17,6 @@ export const SelectSwing = ({ swingArray, handleSwingSelected }) => {
   const handleSwingDoubleClick = (swing, event) => {
     setIsOpen(true);
     setdblClickSwing(swing);
-  };
-
-  const deleteSwingHandler = () => {
-    if (dblClickSwing) {
-      // Delete the swing
-      deleteSwing(dblClickSwing.id);
-    }
   };
 
   const handleClosePopover = () => {

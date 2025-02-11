@@ -6,7 +6,11 @@ import { Box, Button, Grid, TextField } from "@mui/material";
 import { deleteSwing } from "../backendCalls/BackendCalls";
 import Grid2 from "@mui/material/Unstable_Grid2";
 
-export const SelectSwingLarge = ({ swingArray, handleSwingSelected }) => {
+export const SelectSwingLarge = ({
+  swingArray,
+  handleSwingSelected,
+  deleteSwingHandler,
+}) => {
   const [anchorEl, setAnchorEl] = useState(null);
   const [isOpen, setIsOpen] = useState(false);
   const [dblClickSwing, setdblClickSwing] = useState(null);
@@ -14,13 +18,6 @@ export const SelectSwingLarge = ({ swingArray, handleSwingSelected }) => {
   const handleSwingDoubleClick = (swing, event) => {
     setIsOpen(true);
     setdblClickSwing(swing);
-  };
-
-  const deleteSwingHandler = () => {
-    if (dblClickSwing) {
-      // Delete the swing
-      deleteSwing(dblClickSwing.id);
-    }
   };
 
   const handleClosePopover = () => {

@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import FindFramesHelper from "../displaykeypoints/FindFramesHelper";
 import { Box, Grid } from "@mui/material";
 import NavigationPanel from "../Components/NavigationPanel";
-import { getAllSwings, getSwingData } from "../backendCalls/BackendCalls";
+import {
+  deleteSwing,
+  getAllSwings,
+  getSwingData,
+} from "../backendCalls/BackendCalls";
 import EvaluationPointsPanel from "../Components/EvaluationPointsPanel";
 import { SelectSwing } from "../Components/SelectSwing";
 import { Container } from "../Components/Container";
@@ -50,6 +54,19 @@ const SwingEvaluation = () => {
     fetchSwingData();
   };
 
+  const deleteSwingHandler = async (dblClickSwing) => {
+    if (dblClickSwing) {
+      await deleteSwing(dblClickSwing.id);
+      setSwingArray((prevSwings) =>
+        prevSwings.filter((swing) => swing.id !== dblClickSwing.id)
+      );
+
+      if (swingSelected?.id === dblClickSwing.id) {
+        setSwingSelected(null);
+      }
+    }
+  };
+
   const getSwingDataPercentages = () => {
     let headStartValue = swingSelected.frames[0][0][0].x;
     let headTotalValue = 0;
@@ -93,6 +110,7 @@ const SwingEvaluation = () => {
                 <SelectSwing
                   swingArray={swingArray}
                   handleSwingSelected={handleSwingSelected}
+                  deleteSwingHandler={deleteSwingHandler}
                 />
 
                 <Box
@@ -129,6 +147,7 @@ const SwingEvaluation = () => {
               <SelectSwingLarge
                 swingArray={swingArray}
                 handleSwingSelected={handleSwingSelected}
+                deleteSwingHandler={deleteSwingHandler}
               ></SelectSwingLarge>
             )}
           </Box>
