@@ -69,17 +69,23 @@ const RecordSwingVideo = ({
     }
   }, [processedVideoURL]);
 
-  // When the CaptureVideoMovement is done proccessing the video send the data
+  // When the CaptureVideoMovement is done proccessing the video set swing data
   useEffect(() => {
     if (recordedFramesRef.current && isCapturingDone) {
       console.log(recordedFramesRef.current);
       setSwingData({
         frames: recordedFramesRef.current,
       });
+    }
+  }, [isCapturingDone]);
+
+  // Once swing data is set tell the screen it is done processing
+  useEffect(() => {
+    if (swingData) {
       console.log(swingData);
       proccessedVideo(swingData);
     }
-  }, [isCapturingDone]);
+  }, [swingData]);
 
   // Starting the timer
   useEffect(() => {
