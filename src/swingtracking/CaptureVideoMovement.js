@@ -1,5 +1,6 @@
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs";
+import { useEffect } from "react";
 
 let detector = null; // Store the detector globally
 

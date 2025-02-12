@@ -37,7 +37,6 @@ const RecordSwingVideo = ({
   const webcamRef = useRef(null);
   const playbackVideoRef = useRef(null);
   const recordedFramesRef = useRef([]);
-  const ffmpegRef = useRef(null);
   const recordedChunksRef = useRef([]);
   const mediaRecorderRef = useRef(null);
 
@@ -45,12 +44,21 @@ const RecordSwingVideo = ({
   const [processedVideoURL, setProcessedVideoURL] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [isCapturingDone, setIsCapturingDone] = useState(false);
-
-  const [anchorEl, setAnchorEl] = React.useState(null);
-  const [isOpen, setIsOpen] = React.useState(false);
-  const [swingTitle, setSwingTitle] = React.useState("");
   const [swingData, setSwingData] = useState(null);
 
+  // Making sure the MoveNet model is ready
+  useEffect(() => {
+    preloadMoveNetModel();
+  }, []);
+
+  // When the frames start to be captured we know to stop recording
+  useEffect(() => {
+    if (recordedFramesRef.current) {
+      stopRecording();
+    }
+  }, [recordedFramesRef.current]);
+
+  // When the playback video is playing start detection
   useEffect(() => {
     if (processedVideoURL && playbackVideoRef.current) {
       CaptureVideoMovement(
@@ -61,32 +69,19 @@ const RecordSwingVideo = ({
     }
   }, [processedVideoURL]);
 
+  // When the CaptureVideoMovement is done proccessing the video send the data
   useEffect(() => {
-    preloadMoveNetModel();
-  }, []);
-
-  useEffect(() => {
-    if (recordedFramesRef.current) {
-      // console.log("Updated processedVideoURL:", processedVideoURL);
-      // const analyzeVideo = async () => {
-      //   try {
-      //     await CaptureVideoMovement(processedVideoURL, recordedFramesRef);
-      //   } catch (error) {
-      //     console.error("Error in pose detection:", error);
-      //   }
-      // };
-      // console.log("setting swing data");
-      // analyzeVideo();
-
+    if (recordedFramesRef.current && isCapturingDone) {
       console.log(recordedFramesRef.current);
       setSwingData({
         frames: recordedFramesRef.current,
       });
       console.log(swingData);
-      stopRecording(swingData);
+      proccessedVideo(swingData);
     }
-  }, [recordedFramesRef.current]);
+  }, [isCapturingDone]);
 
+  // Starting the timer
   useEffect(() => {
     if (startRecording) {
       setCountdown(3);
@@ -114,6 +109,7 @@ const RecordSwingVideo = ({
     }
   }, [startRecording]);
 
+  // Called from CaptureVideoMovement when the video is done being captured
   const handleCaptureComplete = () => {
     console.log("Capture finished!");
     setIsCapturingDone(true);
@@ -174,15 +170,6 @@ const RecordSwingVideo = ({
     }
   };
 
-  const handleInputChange = (event) => {
-    setSwingTitle(event.target.value);
-  };
-
-  const handleClosePopover = () => {
-    setIsOpen(false);
-    setAnchorEl(null);
-  };
-
   return (
     <Grid
       container
@@ -216,18 +203,6 @@ const RecordSwingVideo = ({
               backgroundColor: "black",
               position: "relative",
             }}
-            onLoadedData={async () => {
-              if (playbackVideoRef.current) {
-                try {
-                  // REMOVE the CaptureVideoMovement call here
-                  // It is no longer necessary because we handle it in the useEffect
-                  console.log("VIDEO PROCESSED");
-                  proccessedVideo(true);
-                } catch (error) {
-                  console.error("Error capturing video movement:", error);
-                }
-              }
-            }}
             onClick={(e) => e.stopPropagation()}
             onError={(e) => console.error("Video playback error:", e)}
           />
@@ -248,36 +223,6 @@ const RecordSwingVideo = ({
       </div>
       {startRecording && <TimerText>{countdown}</TimerText>}
       {isProcessing && <TimerText>Processing...</TimerText>}
-
-      {/* {isOpen && (
-        // <CustomPopover
-        //   anchorEl={webcamRef.current}
-        //   open={isOpen}
-        //   popoverContent={
-        //     <>
-        //       <TextField
-        //         id="outlined-basic"
-        //         label="Swing Title"
-        //         variant="outlined"
-        //         value={swingTitle}
-        //         onChange={handleInputChange}
-        //       />
-        //       <Button
-        //         onClick={() => {
-        //           let swingData = {
-        //             frames: recordedFramesRef.current,
-        //           };
-        //           saveSwingHandler(swingData, swingTitle);
-        //           handleClosePopover();
-        //         }}
-        //       >
-        //         Save
-        //       </Button>
-        //     </>
-        //   }
-        //   handleClose={handleClosePopover}
-        // />
-      )} */}
     </Grid>
   );
 };

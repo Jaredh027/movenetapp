@@ -50,8 +50,9 @@ const CollectSwingVideo = () => {
   const { userId } = useUserContext();
 
   // allow for saving now the video is done being processed by MoveNet
-  const videoDoneProcessing = (value) => {
-    setProcessedVideo(value);
+  const videoDoneProcessing = (swingData) => {
+    setProcessedVideo(true);
+    setSwingData(swingData);
   };
 
   const saveSwingHandler = (swingData, swingTitle) => {
@@ -79,10 +80,9 @@ const CollectSwingVideo = () => {
     }
   };
 
-  const stopRecording = (swingData) => {
+  const stopRecording = () => {
     setCountdownStarted(false);
     setSavingVideo(true);
-    setSwingData(swingData);
   };
 
   return (
