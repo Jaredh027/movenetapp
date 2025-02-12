@@ -69,16 +69,6 @@ const RecordSwingVideo = ({
     }
   }, [processedVideoURL]);
 
-  // When the CaptureVideoMovement is done proccessing the video set swing data
-  useEffect(() => {
-    if (recordedFramesRef.current && isCapturingDone) {
-      console.log(recordedFramesRef.current);
-      setSwingData({
-        frames: recordedFramesRef.current,
-      });
-    }
-  }, [isCapturingDone]);
-
   // Once swing data is set tell the screen it is done processing
   useEffect(() => {
     if (swingData) {
@@ -115,10 +105,17 @@ const RecordSwingVideo = ({
     }
   }, [startRecording]);
 
-  // Called from CaptureVideoMovement when the video is done being captured
+  // When the CaptureVideoMovement is done proccessing the video set swing data
   const handleCaptureComplete = () => {
     console.log("Capture finished!");
-    setIsCapturingDone(true);
+    if (recordedFramesRef.current) {
+      console.log(recordedFramesRef.current);
+      setSwingData({
+        frames: recordedFramesRef.current,
+      });
+    } else {
+      console.log(recordedFramesRef.current);
+    }
   };
 
   const startRecordingVideo = () => {

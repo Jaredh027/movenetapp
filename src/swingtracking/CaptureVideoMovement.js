@@ -36,12 +36,12 @@ export const CaptureVideoMovement = async (
 
   return new Promise((resolve) => {
     const detectPose = async () => {
-      if (!isCapturing || videoElement.paused || videoElement.ended) {
-        console.log("CAPTURING FRAMES DONE");
-        handleCaptureComplete();
-        resolve();
-        return;
-      }
+      // if (!isCapturing || videoElement.paused || videoElement.ended) {
+      //   console.log("CAPTURING FRAMES DONE");
+      //   handleCaptureComplete();
+      //   resolve();
+      //   return;
+      // }
 
       try {
         const poses = await detector.estimatePoses(videoElement);
