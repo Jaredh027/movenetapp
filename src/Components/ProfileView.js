@@ -3,6 +3,17 @@ import { Container } from "./Container";
 import NavigationPanel from "./NavigationPanel";
 
 const ProfileView = ({ userInfo, swingCount }) => {
+  // Handle loading
+  if (!userInfo) {
+    return (
+      <Container style={{ backgroundColor: "#242424" }}>
+        <Box sx={{ alignContent: "center" }}>
+          <p className="HText">Loading...</p>
+        </Box>
+      </Container>
+    );
+  }
+
   console.log(swingCount);
   console.log(userInfo);
   return (

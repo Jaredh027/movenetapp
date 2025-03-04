@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
 import { useUserContext } from "../User_Id_Handling/UserContext";
 import NavigationPanel from "../Components/NavigationPanel";
 import { Grid } from "@mui/material";
@@ -51,6 +52,10 @@ function Home() {
       getAllSwings(userId).then((data) => setSwingCount(data));
     }
   }, [userId]);
+
+  if (!userId) {
+    return <Navigate to="/login" />;
+  }
 
   return (
     <Box

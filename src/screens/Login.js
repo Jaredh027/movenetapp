@@ -16,10 +16,8 @@ const Login = () => {
       <Container style={{ width: "20%" }}>
         <HeaderText>Sign in</HeaderText>
         <Grid container flexDirection="column" rowGap={1}>
-          <TextField placeholder="Email"></TextField>
-          <TextField placeholder="Password"></TextField>
           <CustomButton onClick={handleOAuthLogin}>
-            Login with OAuth
+            Login with Google
           </CustomButton>
         </Grid>
       </Container>
