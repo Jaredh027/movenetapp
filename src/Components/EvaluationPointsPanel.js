@@ -1,5 +1,5 @@
 import { Grid } from "@mui/material";
-import React from "react";
+import React, { useState } from "react";
 import CustomButton from "./CustomButton";
 import HeaderText from "./HeaderText";
 
@@ -23,6 +23,7 @@ function EvaluationPointsPanel({
   handleHeadEvaluationSelected,
   handlePathEvaluationSelected,
 }) {
+  const [selectedArr, setSelectedArr] = useState([false, false]);
   let functionArr = [
     handleHeadEvaluationSelected,
     handlePathEvaluationSelected,
@@ -35,7 +36,13 @@ function EvaluationPointsPanel({
           {pointsOfEvaluationArr.map((evaluation, index) => (
             <CustomButton
               key={evaluation}
-              onClick={() => functionArr[index](evaluation)}
+              onClick={() => {
+                functionArr[index](evaluation);
+                let tempSelectedArr = selectedArr;
+                tempSelectedArr[index] = !tempSelectedArr[index];
+                setSelectedArr(tempSelectedArr);
+              }}
+              selected={selectedArr[index]}
             >
               {evaluation}
             </CustomButton>
