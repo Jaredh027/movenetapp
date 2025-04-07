@@ -45,9 +45,8 @@ const SwingEvaluation = () => {
 
   const handleSwingSelected = (swingName) => {
     const fetchSwingData = async () => {
-      const swingData = await getSwingData(swingName);
-      const swindData2 = await getSwingData(swingArray[0].swing_name);
-      console.log(swingData);
+      const swingData = await getSwingData(swingName, userId);
+      const swindData2 = await getSwingData(swingArray[0].swing_name, userId);
       setSwingSelected(swingData);
     };
 

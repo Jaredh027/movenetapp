@@ -14,11 +14,12 @@ export const sendSwingData = async (swingData, userId) => {
   }
 };
 
-export const getSwingData = async (swingName) => {
+export const getSwingData = async (swingName, userId) => {
   try {
     const response = await axios.get("http://127.0.0.1:5001/api/swing-data", {
       params: {
         swing_name: swingName,
+        userId: userId,
       },
     });
 
@@ -70,6 +71,7 @@ export const fetchUserData = async (userId) => {
 
 export const getAllSwings = async (userId) => {
   try {
+    console.log(userId);
     const response = await fetch(`http://127.0.0.1:5001/api/swings/${userId}`);
     const data = await response.json();
     return data;

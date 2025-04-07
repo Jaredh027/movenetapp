@@ -15,6 +15,7 @@ function FindFramesHelper({
 
   // This is for tracking when a new swing is chosen so we can reset the headPath
   useEffect(() => {
+    console.log("RESET");
     setHeadPath([]);
   }, [keypointsData]);
 
@@ -42,22 +43,21 @@ function FindFramesHelper({
     };
 
     const drawKeypoints = (keypoints, color) => {
-      keypoints.forEach((keypointsArray) => {
-        keypointsArray.forEach(({ x, y, score }, index) => {
-          if (score > 0.2) {
-            const scaledX = (x / 800) * videoWidth + videoWidth / 2;
-            const scaledY = videoHeight - (y / 450) * videoHeight;
+      console.log(keypoints);
+      keypoints.forEach(({ x, y, score }, index) => {
+        if (score > 0.2) {
+          const scaledX = (x / 800) * videoWidth + videoWidth / 2;
+          const scaledY = videoHeight - (y / 450) * videoHeight;
 
-            // Adjust keypoint size and color based on index
-            ctx.beginPath();
-            ctx.arc(scaledX, scaledY, 4, 0, 2 * Math.PI);
-            ctx.fillStyle = color;
-            ctx.fill();
+          ctx.beginPath();
+          ctx.arc(scaledX, scaledY, 4, 0, 2 * Math.PI);
+          ctx.fillStyle = color;
+          ctx.fill();
 
-            if (keypointConnections[index]) {
-              keypointConnections[index].forEach((j) => {
-                const kp2 = keypointsArray[j];
-
+          if (keypointConnections[index]) {
+            keypointConnections[index].forEach((j) => {
+              const kp2 = keypoints[j];
+              if (kp2 && kp2.score > 0.2) {
                 const scaledX2 = (kp2.x / 800) * videoWidth + videoWidth / 2;
                 const scaledY2 = videoHeight - (kp2.y / 450) * videoHeight;
                 ctx.beginPath();
@@ -66,14 +66,15 @@ function FindFramesHelper({
                 ctx.strokeStyle = "darkgray";
                 ctx.lineWidth = 2;
                 ctx.stroke();
-              });
-            }
+              }
+            });
           }
-        });
+        }
       });
     };
 
     const drawHeadPath = () => {
+      console.log(headPath);
       if (headPath.length > 1) {
         ctx.beginPath();
         ctx.moveTo(headPath[0].scaledX, headPath[0].scaledY);
@@ -102,7 +103,7 @@ function FindFramesHelper({
     // Clear canvas before each draw
     ctx.clearRect(0, 0, videoWidth, videoHeight);
 
-    const frameKeypoints1 = keypointsData[currentFrame];
+    const frameKeypoints1 = keypointsData[currentFrame]?.[0]; // safely grab pose from frame
     if (frameKeypoints1) {
       drawKeypoints(frameKeypoints1, "red");
     }
@@ -116,7 +117,7 @@ function FindFramesHelper({
 
     // Update head path if showHeadData is true
     if (showHeadData && frameKeypoints1) {
-      const headKeypoint = frameKeypoints1[0][0];
+      const headKeypoint = frameKeypoints1[0];
       if (headKeypoint && headKeypoint.score > 0.3) {
         const scaledX = (headKeypoint.x / 800) * videoWidth + videoWidth / 2;
         const scaledY = videoHeight - (headKeypoint.y / 450) * videoHeight;
@@ -125,8 +126,7 @@ function FindFramesHelper({
     }
 
     if (showPathData && frameKeypoints1) {
-      console.log(frameKeypoints1);
-      const pathKeypoint = frameKeypoints1[0][9];
+      const pathKeypoint = frameKeypoints1[9];
       if (pathKeypoint) {
         const scaledX = (pathKeypoint.x / 800) * videoWidth + videoWidth / 2;
         const scaledY = videoHeight - (pathKeypoint.y / 450) * videoHeight;
