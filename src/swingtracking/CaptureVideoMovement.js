@@ -1,8 +1,7 @@
 import * as poseDetection from "@tensorflow-models/pose-detection";
 import * as tf from "@tensorflow/tfjs";
-import { useEffect } from "react";
 
-let detector = null; // Store the detector globally
+let detector = null; // keep a single MoveNet instance
 
 export const preloadMoveNetModel = async () => {
   await tf.setBackend("webgl");
@@ -11,12 +10,9 @@ export const preloadMoveNetModel = async () => {
   if (!detector) {
     detector = await poseDetection.createDetector(
       poseDetection.SupportedModels.MoveNet,
-      {
-        modelType: poseDetection.movenet.SINGLEPOSE_LIGHTNING,
-      }
+      { modelType: poseDetection.movenet.SINGLEPOSE_LIGHTNING }
     );
   }
-
   console.log("MoveNet model preloaded");
 };
 
@@ -26,61 +22,61 @@ export const CaptureVideoMovement = async (
   handleCaptureComplete
 ) => {
   if (!videoElement) return;
+  if (!detector) await preloadMoveNetModel();
 
-  if (!detector) {
-    console.warn("MoveNet model not preloaded, loading now...");
-    await preloadMoveNetModel();
-  }
+  // ───────── 1. wrist-sanity constants & helpers ─────────  ← NEW
+  const WRIST = 9; // MoveNet right-wrist index
+  const MIN_CONF = 0.35;
+  const MAX_JUMP = 120; // px² distance limit
+  let lastGoodWrist = null;
 
-  let isCapturing = true;
+  const acceptWrist = (kp) => {
+    if (!kp || kp.score < MIN_CONF) return false;
+    if (lastGoodWrist) {
+      const dx = kp.x - lastGoodWrist.x;
+      const dy = kp.y - lastGoodWrist.y;
+      if (dx * dx + dy * dy > MAX_JUMP * MAX_JUMP) return false;
+    }
+    return true;
+  };
+  // ────────────────────────────────────────────────────────
+
+  let capturing = true;
 
   return new Promise((resolve) => {
     const detectPose = async () => {
-      // if (!isCapturing || videoElement.paused || videoElement.ended) {
-      //   console.log("CAPTURING FRAMES DONE");
-      //   handleCaptureComplete();
-      //   resolve();
-      //   return;
-      // }
-
       try {
         const poses = await detector.estimatePoses(videoElement);
+        if (poses.length && poses[0]?.keypoints) {
+          const kp = poses[0].keypoints;
 
-        if (poses.length > 0 && poses[0]?.keypoints) {
-          const keypoints = poses[0].keypoints;
-
-          if (
-            keypoints.every((kp) => kp?.x !== undefined && kp?.y !== undefined)
-          ) {
-            recordedFramesRef.current.push(keypoints);
+          // ───────── 2. gate the frame by wrist validity ─────────  ← NEW
+          const wrist = kp[WRIST];
+          if (acceptWrist(wrist)) {
+            lastGoodWrist = wrist;
+            recordedFramesRef.current.push(kp); // keep full keypoints
           } else {
-            console.warn("Invalid keypoints detected:", keypoints);
+            recordedFramesRef.current.push(null); // mark as “gap”
           }
-        } else {
-          console.warn("No pose detected in frame.");
+          // ────────────────────────────────────────────────────────
         }
-      } catch (error) {
-        console.error("Error estimating pose:", error);
-        isCapturing = false;
+      } catch (err) {
+        console.error("Error estimating pose:", err);
+        capturing = false;
         resolve();
         return;
       }
-
-      requestAnimationFrame(detectPose);
+      if (capturing) requestAnimationFrame(detectPose);
     };
 
-    videoElement.onplay = () => {
-      console.log("Video started playing, beginning pose detection...");
-      detectPose();
-    };
+    videoElement.onplay = () => detectPose();
 
-    videoElement.onended = async () => {
-      isCapturing = false;
-      console.log("Video ended, stopping pose detection.");
-      handleCaptureComplete();
+    videoElement.onended = () => {
+      capturing = false;
+      handleCaptureComplete(); // parent will do gap-fill later
       resolve();
     };
 
-    videoElement.playbackRate = 0.5;
+    videoElement.playbackRate = 0.5; // slow-mo for clarity
   });
 };

@@ -1,41 +1,103 @@
 import React, { useRef, useEffect, useState, useContext } from "react";
-import { Box, Button, Grid, TextField } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import NavigationPanel from "../Components/NavigationPanel";
-import CustomButton from "../Components/CustomButton";
-import { ReactComponent as Video } from "../icons/video.svg";
-import { ReactComponent as Save } from "../icons/save-svgrepo-com.svg";
 
 import { normalizeSwingData } from "../datamanipulation/Util";
 import { sendSwingData } from "../backendCalls/BackendCalls";
 import RecordSwingVideo from "../Components/RecordSwingVideo";
-import { Container } from "../Components/Container";
 import { useUserContext } from "../User_Id_Handling/UserContext";
-import TypeField from "../Components/TypeField";
-import CustomPopover from "../Components/CustomPopover";
+import RecordButton from "../Components/RecordButton";
+import SaveButton from "../Components/SaveButton";
+import CancelButton from "../Components/CancelButton";
+// Modern Button Components
 
-// Custom RecordButton component
-const RecordButton = (props) => (
-  <CustomButton startIcon={<Video />} {...props}>
-    {props.children}
-  </CustomButton>
-);
+const TypeField = ({ value, onChange, placeholder }) => {
+  const inputStyles = {
+    width: "100%",
+    padding: "0.875rem 1rem",
+    fontSize: "0.875rem",
+    borderRadius: "10px",
+    border: "2px solid #e5e7eb",
+    backgroundColor: "white",
+    color: "#1f2937",
+    outline: "none",
+    transition: "all 0.2s ease",
+    fontFamily: "inherit",
+  };
 
-const SaveButton = (props) => (
-  <CustomButton startIcon={<Save />} {...props}>
-    {props.children}
-  </CustomButton>
-);
+  return (
+    <input
+      type="text"
+      style={inputStyles}
+      value={value}
+      onChange={onChange}
+      placeholder={placeholder}
+      onFocus={(e) => {
+        e.target.style.borderColor = "#10b981";
+        e.target.style.boxShadow = "0 0 0 3px rgba(16, 185, 129, 0.1)";
+      }}
+      onBlur={(e) => {
+        e.target.style.borderColor = "#e5e7eb";
+        e.target.style.boxShadow = "none";
+      }}
+    />
+  );
+};
 
-const CancelButton = (props) => (
-  <CustomButton
-    // startIcon={<Save />}
-    {...props}
-  >
-    {props.children}
-  </CustomButton>
-);
+// Modern Container Component
+const Container = ({ children }) => {
+  const containerStyles = {
+    backgroundColor: "white",
+    borderRadius: "16px",
+    padding: "2.5rem",
+    boxShadow:
+      "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+    border: "1px solid rgba(0, 0, 0, 0.05)",
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    gap: "2rem",
+    minHeight: "500px",
+    position: "relative",
+  };
 
-// Custom Container component
+  return <div style={containerStyles}>{children}</div>;
+};
+
+// Modern Modal/Popover Component
+const CustomPopover = ({ open, popoverContent }) => {
+  if (!open) return null;
+
+  const overlayStyles = {
+    position: "fixed",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 1000,
+    padding: "1rem",
+  };
+
+  const modalStyles = {
+    backgroundColor: "white",
+    borderRadius: "16px",
+    padding: "2rem",
+    maxWidth: "400px",
+    width: "100%",
+    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+    border: "1px solid rgba(0, 0, 0, 0.1)",
+  };
+
+  return (
+    <div style={overlayStyles}>
+      <div style={modalStyles}>{popoverContent}</div>
+    </div>
+  );
+};
 
 const CollectSwingVideo = () => {
   const [countdownStarted, setCountdownStarted] = useState(false);
@@ -44,12 +106,11 @@ const CollectSwingVideo = () => {
   const [swingData, setSwingData] = useState(null);
   const [swingTitle, setSwingTitle] = useState("");
   const [error, setError] = useState("");
-
   const [open, setOpen] = useState(false);
 
   const { userId } = useUserContext();
 
-  // allow for saving now the video is done being processed by MoveNet
+  // Allow for saving now the video is done being processed by MoveNet
   const videoDoneProcessing = (swingData) => {
     setProcessedVideo(true);
     setSwingData(swingData);
@@ -85,33 +146,97 @@ const CollectSwingVideo = () => {
     setSavingVideo(true);
   };
 
+  const pageStyles = {
+    minHeight: "100vh",
+    backgroundColor: "#f8fafc",
+    padding: "2rem",
+  };
+
+  const gridStyles = {
+    display: "grid",
+    gridTemplateColumns: "300px 1fr",
+    gap: "2rem",
+    maxWidth: "1400px",
+    margin: "0 auto",
+  };
+
+  const actionGridStyles = {
+    display: "grid",
+    gridTemplateColumns: "auto 1fr auto",
+    gap: "1rem",
+    alignItems: "center",
+    width: "100%",
+    maxWidth: "600px",
+  };
+
+  const errorModalContent = (
+    <div style={{ textAlign: "center" }}>
+      <h3
+        style={{
+          color: "#dc2626",
+          marginBottom: "1rem",
+          fontSize: "1.25rem",
+          fontWeight: "600",
+        }}
+      >
+        Error Processing Swing
+      </h3>
+      <p
+        style={{ color: "#6b7280", marginBottom: "1.5rem", lineHeight: "1.6" }}
+      >
+        {error.toString()}
+      </p>
+      <button
+        style={{
+          padding: "0.75rem 2rem",
+          fontSize: "0.875rem",
+          fontWeight: "600",
+          borderRadius: "8px",
+          border: "none",
+          backgroundColor: "#10b981",
+          color: "white",
+          cursor: "pointer",
+          transition: "all 0.2s ease",
+        }}
+        onClick={() => setOpen(false)}
+        onMouseEnter={(e) => {
+          e.target.style.backgroundColor = "#059669";
+        }}
+        onMouseLeave={(e) => {
+          e.target.style.backgroundColor = "#10b981";
+        }}
+      >
+        OK
+      </button>
+    </div>
+  );
+
   return (
-    <>
-      <Grid container spacing={1}>
-        <Grid item xs={3}>
+    <div style={pageStyles}>
+      <div style={gridStyles}>
+        {/* Navigation Panel */}
+        <div>
           <NavigationPanel selectedButtonIndex={2} />
-        </Grid>
-        <Grid item xs={9}>
+        </div>
+
+        {/* Main Content */}
+        <div>
           <Container>
             {processedVideo ? (
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: "repeat(3, 1fr)",
-                  gap: 1,
-                }}
-              >
+              <div style={actionGridStyles}>
                 <SaveButton
                   onClick={() => saveSwingHandler(swingData, swingTitle)}
+                  disabled={!swingTitle.trim()}
                 >
-                  {"Save"}
+                  Save
                 </SaveButton>
 
                 <TypeField
                   value={swingTitle}
                   onChange={(event) => setSwingTitle(event.target.value)}
                   placeholder="Enter swing name"
-                ></TypeField>
+                />
+
                 <CancelButton
                   onClick={() => {
                     setSwingData(null);
@@ -122,9 +247,12 @@ const CollectSwingVideo = () => {
                 >
                   Cancel
                 </CancelButton>
-              </Box>
+              </div>
             ) : (
-              <RecordButton onClick={() => setCountdownStarted(true)}>
+              <RecordButton
+                onClick={() => setCountdownStarted(true)}
+                disabled={countdownStarted}
+              >
                 {countdownStarted ? "Recording..." : "Start Recording"}
               </RecordButton>
             )}
@@ -136,23 +264,11 @@ const CollectSwingVideo = () => {
               proccessedVideo={videoDoneProcessing}
             />
           </Container>
-        </Grid>
-      </Grid>
-      <CustomPopover
-        open={open}
-        popoverContent={
-          <div style={{ justifyItems: "center" }}>
-            <p>{error.toString()}</p>
-            <CustomButton
-              style={{ width: "50%" }}
-              onClick={() => setOpen(false)}
-            >
-              Ok
-            </CustomButton>
-          </div>
-        }
-      ></CustomPopover>
-    </>
+        </div>
+      </div>
+
+      <CustomPopover open={open} popoverContent={errorModalContent} />
+    </div>
   );
 };
 

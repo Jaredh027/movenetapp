@@ -10,159 +10,198 @@ function FindFramesHelper({
   const canvasRef = useRef(null);
   const [currentFrame, setCurrentFrame] = useState(0);
   const [value, setValue] = useState(0);
-  const [headPath, setHeadPath] = useState([]);
-  const [pathPath, setPathPath] = useState([]);
 
-  // This is for tracking when a new swing is chosen so we can reset the headPath
+  // ── path refs buffer points without triggering renders ──
+  const headPathRef = useRef([]); // ← updated
+  const pathPathRef = useRef([]); // ← updated
+
+  const [smoothingLevel, setSmoothingLevel] = useState(0);
+  const [interpolatedData, setInterpolatedData] = useState(null);
+  const [interpolatedData2, setInterpolatedData2] = useState(null);
+
+  // reset paths when a new swing is chosen
   useEffect(() => {
-    console.log("RESET");
-    setHeadPath([]);
-  }, [keypointsData]);
+    headPathRef.current = []; // ← updated
+    pathPathRef.current = []; // ← updated
 
+    if (keypointsData && keypointsData.length > 1) {
+      setInterpolatedData(interpolateFrames(keypointsData, 2));
+    }
+    if (keypointsData2 && keypointsData2.length > 1) {
+      setInterpolatedData2(interpolateFrames(keypointsData2, 2));
+    }
+  }, [keypointsData, keypointsData2]);
+
+  // ── frame interpolation helper ──
+  const interpolateFrames = (frames, numIntermediateFrames) => {
+    if (!frames || frames.length < 2) return frames;
+    const result = [];
+
+    for (let i = 0; i < frames.length - 1; i++) {
+      result.push(frames[i]);
+      const a = frames[i][0];
+      const b = frames[i + 1][0];
+
+      for (let j = 1; j <= numIntermediateFrames; j++) {
+        const r = j / (numIntermediateFrames + 1);
+        result.push([
+          a.map((p, k) =>
+            !b[k]
+              ? p
+              : {
+                  joint_index: p.joint_index,
+                  x: p.x + (b[k].x - p.x) * r,
+                  y: p.y + (b[k].y - p.y) * r,
+                  score: p.score + (b[k].score - p.score) * r,
+                }
+          ),
+        ]);
+      }
+    }
+    result.push(frames[frames.length - 1]);
+    return result;
+  };
+
+  // ────────────────────────────────────────────────────────
   useEffect(() => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
     const videoWidth = 1280;
     const videoHeight = 720;
     canvas.width = videoWidth;
     canvas.height = videoHeight;
 
     const keypointConnections = {
-      0: [1, 2], // Nose to eyes
-      1: [3], // Left eye to left ear
-      2: [4], // Right eye to right ear
-      5: [6, 7, 11], // Left shoulder to right shoulder, left elbow, left hip
-      6: [8, 12], // Right shoulder to right elbow, right hip
-      7: [9], // Left elbow to left wrist
-      8: [10], // Right elbow to right wrist
-      11: [12, 13], // Left hip to right hip, left knee
-      12: [14], // Right hip to right knee
-      13: [15], // Left knee to left ankle
-      14: [16], // Right knee to right ankle
+      0: [1, 2],
+      1: [3],
+      2: [4],
+      5: [6, 7, 11],
+      6: [8, 12],
+      7: [9],
+      8: [10],
+      11: [12, 13],
+      12: [14],
+      13: [15],
+      14: [16],
     };
 
     const drawKeypoints = (keypoints, color) => {
-      console.log(keypoints);
-      keypoints.forEach(({ x, y, score }, index) => {
+      if (!keypoints) return;
+      keypoints.forEach(({ x, y, score }, idx) => {
         if (score > 0.2) {
-          const scaledX = (x / 800) * videoWidth + videoWidth / 2;
-          const scaledY = videoHeight - (y / 450) * videoHeight;
+          const sx = (x / 800) * videoWidth + videoWidth / 2;
+          const sy = videoHeight - (y / 450) * videoHeight;
 
           ctx.beginPath();
-          ctx.arc(scaledX, scaledY, 4, 0, 2 * Math.PI);
+          ctx.arc(sx, sy, 4, 0, 2 * Math.PI);
           ctx.fillStyle = color;
           ctx.fill();
 
-          if (keypointConnections[index]) {
-            keypointConnections[index].forEach((j) => {
-              const kp2 = keypoints[j];
-              if (kp2 && kp2.score > 0.2) {
-                const scaledX2 = (kp2.x / 800) * videoWidth + videoWidth / 2;
-                const scaledY2 = videoHeight - (kp2.y / 450) * videoHeight;
-                ctx.beginPath();
-                ctx.moveTo(scaledX, scaledY);
-                ctx.lineTo(scaledX2, scaledY2);
-                ctx.strokeStyle = "darkgray";
-                ctx.lineWidth = 2;
-                ctx.stroke();
-              }
-            });
-          }
+          keypointConnections[idx]?.forEach((j) => {
+            const k2 = keypoints[j];
+            if (k2 && k2.score > 0.2) {
+              const sx2 = (k2.x / 800) * videoWidth + videoWidth / 2;
+              const sy2 = videoHeight - (k2.y / 450) * videoHeight;
+              ctx.beginPath();
+              ctx.moveTo(sx, sy);
+              ctx.lineTo(sx2, sy2);
+              ctx.strokeStyle = "darkgray";
+              ctx.lineWidth = 2;
+              ctx.stroke();
+            }
+          });
         }
       });
     };
 
-    const drawHeadPath = () => {
-      console.log(headPath);
-      if (headPath.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(headPath[0].scaledX, headPath[0].scaledY);
-        for (let i = 1; i < headPath.length; i++) {
-          ctx.lineTo(headPath[i].scaledX, headPath[i].scaledY);
-        }
-        ctx.strokeStyle = "green";
-        ctx.lineWidth = 2;
-        ctx.stroke();
+    const drawSmoothCurve = (ctx, pts, colour) => {
+      if (pts.length < 3) return;
+      ctx.beginPath();
+      ctx.moveTo(pts[0].scaledX, pts[0].scaledY);
+      for (let i = 1; i < pts.length - 2; i++) {
+        const xc = (pts[i].scaledX + pts[i + 1].scaledX) / 2;
+        const yc = (pts[i].scaledY + pts[i + 1].scaledY) / 2;
+        ctx.quadraticCurveTo(pts[i].scaledX, pts[i].scaledY, xc, yc);
       }
+      ctx.quadraticCurveTo(
+        pts[pts.length - 2].scaledX,
+        pts[pts.length - 2].scaledY,
+        pts[pts.length - 1].scaledX,
+        pts[pts.length - 1].scaledY
+      );
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = colour;
+      ctx.stroke();
     };
 
-    const drawPathPath = () => {
-      if (pathPath.length > 1) {
-        ctx.beginPath();
-        ctx.moveTo(pathPath[0].scaledX, pathPath[0].scaledY);
-        for (let i = 1; i < pathPath.length; i++) {
-          ctx.lineTo(pathPath[i].scaledX, pathPath[i].scaledY);
-        }
-        ctx.strokeStyle = "blue";
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
-    };
-
-    // Clear canvas before each draw
+    // ── start of draw cycle ──
     ctx.clearRect(0, 0, videoWidth, videoHeight);
 
-    const frameKeypoints1 = keypointsData[currentFrame]?.[0]; // safely grab pose from frame
-    if (frameKeypoints1) {
-      drawKeypoints(frameKeypoints1, "red");
+    const data1 = interpolatedData || keypointsData;
+    const data2 = interpolatedData2 || keypointsData2;
+    const kpFrame1 = data1?.[currentFrame]?.[0];
+
+    if (kpFrame1) drawKeypoints(kpFrame1, "red");
+    if (data2) {
+      const kpFrame2 = data2[currentFrame]?.[0];
+      if (kpFrame2) drawKeypoints(kpFrame2, "blue");
     }
 
-    if (keypointsData2) {
-      const frameKeypoints2 = keypointsData2[currentFrame];
-      if (frameKeypoints2) {
-        drawKeypoints(frameKeypoints2, "blue");
+    // ── collect path points without triggering React renders ──
+    if (showHeadData && kpFrame1) {
+      const h = kpFrame1[0];
+      if (h?.score > 0.3) {
+        headPathRef.current.push({
+          scaledX: (h.x / 800) * videoWidth + videoWidth / 2,
+          scaledY: videoHeight - (h.y / 450) * videoHeight,
+        });
       }
     }
 
-    // Update head path if showHeadData is true
-    if (showHeadData && frameKeypoints1) {
-      const headKeypoint = frameKeypoints1[0];
-      if (headKeypoint && headKeypoint.score > 0.3) {
-        const scaledX = (headKeypoint.x / 800) * videoWidth + videoWidth / 2;
-        const scaledY = videoHeight - (headKeypoint.y / 450) * videoHeight;
-        setHeadPath((prevHeadPath) => [...prevHeadPath, { scaledX, scaledY }]);
+    if (showPathData && kpFrame1) {
+      const p = kpFrame1[9];
+      if (p) {
+        pathPathRef.current.push({
+          scaledX: (p.x / 800) * videoWidth + videoWidth / 2,
+          scaledY: videoHeight - (p.y / 450) * videoHeight,
+        });
       }
     }
 
-    if (showPathData && frameKeypoints1) {
-      const pathKeypoint = frameKeypoints1[9];
-      if (pathKeypoint) {
-        const scaledX = (pathKeypoint.x / 800) * videoWidth + videoWidth / 2;
-        const scaledY = videoHeight - (pathKeypoint.y / 450) * videoHeight;
-        setPathPath((prevPathPath) => [...prevPathPath, { scaledX, scaledY }]);
-      }
-    }
+    // ── draw the full paths from the refs ──
+    drawSmoothCurve(ctx, headPathRef.current, "green");
+    drawSmoothCurve(ctx, pathPathRef.current, "blue");
 
-    // Draw the entire head path
-    drawHeadPath();
-    drawPathPath();
-
-    const handleKeyDown = (event) => {
-      const frameCount = keypointsData.length;
-      if (event.key === "ArrowRight") {
-        setCurrentFrame((prevFrame) => (prevFrame + 1) % frameCount);
-        setValue((prevValue) => (prevValue + 1) % frameCount);
-      } else if (event.key === "ArrowLeft") {
-        setCurrentFrame((prevFrame) =>
-          prevFrame === 0 ? frameCount - 1 : prevFrame - 1
-        );
-        setValue((prevValue) =>
-          prevValue === 0 ? frameCount - 1 : prevValue - 1
-        );
+    // ── keyboard controls ──
+    const handleKeyDown = (e) => {
+      const max = data1.length;
+      if (e.key === "ArrowRight") {
+        setCurrentFrame((f) => (f + 1) % max);
+        setValue((v) => (v + 1) % max);
+      } else if (e.key === "ArrowLeft") {
+        setCurrentFrame((f) => (f === 0 ? max - 1 : f - 1));
+        setValue((v) => (v === 0 ? max - 1 : v - 1));
       }
     };
-
     window.addEventListener("keydown", handleKeyDown);
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [keypointsData, keypointsData2, currentFrame, showHeadData]);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+    // ───────────────────────
+  }, [
+    keypointsData,
+    keypointsData2,
+    interpolatedData,
+    interpolatedData2,
+    currentFrame,
+    showHeadData,
+    showPathData, // ← head/path refs don’t need to be in deps
+  ]);
 
-  const handleSliderChange = (event, newValue) => {
-    setValue(newValue);
-    setCurrentFrame(newValue);
+  const handleSliderChange = (_, newVal) => {
+    setValue(newVal);
+    setCurrentFrame(newVal);
   };
+
+  const maxVal = (interpolatedData || keypointsData || []).length - 1;
 
   return (
     <div>
@@ -180,8 +219,8 @@ function FindFramesHelper({
       <Slider
         value={value}
         onChange={handleSliderChange}
-        max={keypointsData.length - 1}
-        style={{ marginTop: "20px", width: "80%", margin: "auto" }}
+        max={maxVal}
+        sx={{ mt: 3, width: "80%", mx: "auto" }}
       />
     </div>
   );

@@ -25,6 +25,61 @@ const SwingContainer = (props) => (
   </Grid>
 );
 
+function fillMissing(frames, thresh = 0.15) {
+  // walk every joint separately
+  const J = frames[0][0].length;
+  for (let j = 0; j < J; j++) {
+    // gather valid indices
+    const validIdx = frames
+      .map((f, i) => (f[0][j].score > thresh ? i : -1))
+      .filter((i) => i !== -1);
+
+    for (let k = 0; k < validIdx.length - 1; k++) {
+      const a = validIdx[k],
+        b = validIdx[k + 1];
+      const dx = (frames[b][0][j].x - frames[a][0][j].x) / (b - a);
+      const dy = (frames[b][0][j].y - frames[a][0][j].y) / (b - a);
+      const ds = (frames[b][0][j].score - frames[a][0][j].score) / (b - a);
+
+      for (let t = a + 1; t < b; t++) {
+        frames[t][0][j] = {
+          ...frames[a][0][j],
+          x: frames[a][0][j].x + dx * (t - a),
+          y: frames[a][0][j].y + dy * (t - a),
+          score: frames[a][0][j].score + ds * (t - a),
+        };
+      }
+    }
+  }
+  return frames;
+}
+
+function smoothFrames(frames, window = 3) {
+  const half = Math.floor(window / 2);
+  return frames.map((frame, i) => {
+    return [
+      frame[0].map((kp, j) => {
+        // collect neighbours that exist & have confidence
+        const neighbours = [];
+        for (let k = i - half; k <= i + half; k++) {
+          const f = frames[k];
+          if (f && f[0][j]?.score > 0.15) neighbours.push(f[0][j]);
+        }
+        // average x & y
+        const mean = (prop) =>
+          neighbours.reduce((s, n) => s + n[prop], 0) / neighbours.length;
+        return {
+          ...kp,
+          x: mean("x"),
+          y: mean("y"),
+          // blend score so we keep some notion of confidence
+          score: mean("score"),
+        };
+      }),
+    ];
+  });
+}
+
 const SwingEvaluation = () => {
   const [swingSelected, setSwingSelected] = useState();
   const [showHeadData, setShowHeadData] = useState(false);
@@ -46,8 +101,9 @@ const SwingEvaluation = () => {
   const handleSwingSelected = (swingName) => {
     const fetchSwingData = async () => {
       const swingData = await getSwingData(swingName, userId);
+      const cleaned = smoothFrames(fillMissing(swingData.frames));
       const swindData2 = await getSwingData(swingArray[0].swing_name, userId);
-      setSwingSelected(swingData);
+      setSwingSelected({ ...swingData, frames: cleaned });
     };
 
     fetchSwingData();

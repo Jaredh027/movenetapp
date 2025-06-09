@@ -19,7 +19,7 @@ function App() {
   return (
     <Router>
       <Header />
-      <div style={{ padding: "16px" }}>
+      <div>
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />

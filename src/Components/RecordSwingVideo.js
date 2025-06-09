@@ -8,6 +8,7 @@ import {
   preloadMoveNetModel,
 } from "../swingtracking/CaptureVideoMovement";
 import CustomPopover from "./CustomPopover";
+import savitzkyGolay from "ml-savitzky-golay";
 
 const TimerText = (props) => (
   <p
@@ -27,6 +28,74 @@ const TimerText = (props) => (
     {props.children}
   </p>
 );
+
+function smoothJointAvg(frames, idx = 9, win = 5) {
+  const half = Math.floor(win / 2);
+  const n = frames.length;
+  const out = frames.map((f) => f.map((kp) => ({ ...kp }))); // deep-copy
+
+  for (let i = 0; i < n; i++) {
+    let sx = 0,
+      sy = 0,
+      cnt = 0;
+    for (let j = i - half; j <= i + half; j++) {
+      if (j < 0 || j >= n) continue;
+      sx += frames[j][idx].x;
+      sy += frames[j][idx].y;
+      cnt++;
+    }
+    out[i][idx].x = sx / cnt;
+    out[i][idx].y = sy / cnt;
+  }
+  return out;
+}
+
+// ─── gap-fill for [ keypoint[] | null ] ─────────────────────────────
+function fillGaps(frames) {
+  const out = [...frames]; // clone
+  const J = 17; // MoveNet joints
+
+  // find all good frame indices
+  const goodIdx = out.map((f, i) => (f ? i : -1)).filter((i) => i !== -1);
+
+  if (goodIdx.length === 0) return out; // no valid frames
+
+  // handle leading gap by copying first good frame backward
+  for (let i = 0; i < goodIdx[0]; i++) {
+    out[i] = out[goodIdx[0]].map((kp) => ({ ...kp }));
+  }
+
+  // in-between gaps: linear interpolation joint-by-joint
+  for (let g = 0; g < goodIdx.length - 1; g++) {
+    const a = goodIdx[g];
+    const b = goodIdx[g + 1];
+    const gap = b - a;
+    if (gap <= 1) continue; // no hole
+
+    for (let t = 1; t < gap; t++) {
+      const r = t / gap;
+      out[a + t] = Array(J)
+        .fill(0)
+        .map((_, j) => {
+          const kpA = out[a][j];
+          const kpB = out[b][j];
+          return {
+            x: kpA.x + (kpB.x - kpA.x) * r,
+            y: kpA.y + (kpB.y - kpA.y) * r,
+            score: (kpA.score + kpB.score) * 0.5,
+          };
+        });
+    }
+  }
+
+  // handle trailing gap by copying last good forward
+  for (let i = goodIdx[goodIdx.length - 1] + 1; i < out.length; i++) {
+    out[i] = out[goodIdx[goodIdx.length - 1]].map((kp) => ({ ...kp }));
+  }
+
+  return out;
+}
+// ────────────────────────────────────────────────────────────────────
 
 const RecordSwingVideo = ({
   startRecording,
@@ -110,9 +179,9 @@ const RecordSwingVideo = ({
     console.log("Capture finished!");
     if (recordedFramesRef.current) {
       console.log(recordedFramesRef.current);
-      setSwingData({
-        frames: recordedFramesRef.current,
-      });
+      const bridged = fillGaps(recordedFramesRef.current);
+      const smooth = smoothJointAvg(bridged, 9, 5); // 5-frame MA
+      setSwingData({ frames: smooth });
     } else {
       console.log(recordedFramesRef.current);
     }
