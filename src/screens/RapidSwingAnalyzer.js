@@ -76,6 +76,7 @@ const RapidSwingAnalyzer = () => {
             Start Rapid Analysis
           </RecordButton>
           <RecordSwingVideo
+            // This is causing problems because it does not have the stopRecording prop
             startRecording={countdownStarted}
             saveSwingHandler={saveSwingHandler}
           />

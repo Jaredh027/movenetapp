@@ -13,18 +13,6 @@ import { Container } from "../Components/Container";
 import { useUserContext } from "../User_Id_Handling/UserContext";
 import { SelectSwingLarge } from "../Components/SelectSwingLarge";
 
-const SwingContainer = (props) => (
-  <Grid
-    {...props}
-    sx={{
-      display: "flex",
-      flexDirection: "row",
-    }}
-  >
-    {props.children}
-  </Grid>
-);
-
 function fillMissing(frames, thresh = 0.15) {
   // walk every joint separately
   const J = frames[0][0].length;

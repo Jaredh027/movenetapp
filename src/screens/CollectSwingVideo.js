@@ -9,6 +9,7 @@ import { useUserContext } from "../User_Id_Handling/UserContext";
 import RecordButton from "../Components/RecordButton";
 import SaveButton from "../Components/SaveButton";
 import CancelButton from "../Components/CancelButton";
+import UploadButton from "../Components/UploadButton";
 // Modern Button Components
 
 const TypeField = ({ value, onChange, placeholder }) => {
@@ -88,7 +89,7 @@ const CustomPopover = ({ open, popoverContent }) => {
     padding: "2rem",
     maxWidth: "400px",
     width: "100%",
-    boxShadow: "0 25px 50px -12px rgba(0, 0, 0, 0.25)",
+    boxShadow: "0 25px 50px -12px rgba(0, 0, 0,x 0.25)",
     border: "1px solid rgba(0, 0, 0, 0.1)",
   };
 
@@ -144,6 +145,26 @@ const CollectSwingVideo = () => {
   const stopRecording = () => {
     setCountdownStarted(false);
     setSavingVideo(true);
+  };
+
+  const handleUploadedData = (files) => {
+    // setSavingVideo(true);
+    // setProcessedVideo(true);
+    // const file = files[0];
+    // if (file && file.type.startsWith("video/")) {
+    //   const reader = new FileReader();
+    //   reader.onload = (e) => {
+    //     const videoData = e.target.result;
+    //     // Process the video data as needed
+    //     // For now, we just simulate processing
+    //     videoDoneProcessing(videoData);
+    //   };
+    //   reader.readAsDataURL(file);
+    // } else {
+    //   setError("Please upload a valid video file.");
+    //   setOpen(true);
+    // }
+    console.log("Files uploaded:", files);
   };
 
   const pageStyles = {
@@ -249,12 +270,17 @@ const CollectSwingVideo = () => {
                 </CancelButton>
               </div>
             ) : (
-              <RecordButton
-                onClick={() => setCountdownStarted(true)}
-                disabled={countdownStarted}
-              >
-                {countdownStarted ? "Recording..." : "Start Recording"}
-              </RecordButton>
+              <div style={{ display: "flex", gap: "1rem" }}>
+                <RecordButton
+                  onClick={() => setCountdownStarted(true)}
+                  disabled={countdownStarted}
+                >
+                  {countdownStarted ? "Recording..." : "Start Recording"}
+                </RecordButton>
+                <UploadButton handleUploadedData={handleUploadedData}>
+                  Upload Video
+                </UploadButton>
+              </div>
             )}
 
             <RecordSwingVideo
